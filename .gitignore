@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# File tam / dau ra dung lai duoc (khong can commit)
+report.html
+report_artifact.html
+data/briefing_*.json
+
+# GIU LAI (khong ignore): data/investment.db, data/briefing_latest.json, data/assessment.json
+# -> DB va du lieu moi nhat can commit de giu trang thai qua cac lan chay
+!data/investment.db
+!data/briefing_latest.json
+!data/assessment.json
+
+# vnstock tu sinh (khong commit)
+AGENTS.md

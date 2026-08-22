@@ -1,0 +1,68 @@
+name: Cap nhat bao cao dau tu
+
+# Chay tu dong hang tuan + cho phep bam chay tay
+on:
+  schedule:
+    - cron: "0 0 * * 0"      # 00:00 UTC Chu nhat = 07:00 sang Chu nhat (gio VN)
+  workflow_dispatch:          # nut "Run workflow" de chay tay bat ky luc nao
+
+# Quyen: ghi DB nguoc vao repo + deploy GitHub Pages
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+# Khong chay chong len nhau
+concurrency:
+  group: weekly-report
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Lay code + DB tu repo
+        uses: actions/checkout@v4
+
+      - name: Cai Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cai thu vien
+        run: pip install -r requirements.txt
+
+      - name: Thu thap du lieu + dung bao cao
+        env:
+          PYTHONIOENCODING: utf-8
+          PYTHONUTF8: "1"
+        run: python run.py
+
+      - name: Luu DB da cap nhat nguoc vao repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -f data/investment.db data/briefing_latest.json
+          git commit -m "chore: cap nhat du lieu $(date -u +%Y-%m-%d) [skip ci]" || echo "Khong co thay doi"
+          git push
+
+      - name: Chuan bi trang cho Pages
+        run: |
+          mkdir -p _site
+          cp report.html _site/index.html
+
+      - name: Dong goi cho Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy len GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
