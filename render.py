@@ -54,6 +54,13 @@ def _finite(x):
     return isinstance(x, (int, float)) and math.isfinite(x)
 
 
+def fmt_vnd(x):
+    """VN stock price: vnstock returns thousand-VND (72.0) -> show actual VND (72,000)."""
+    if not _finite(x):
+        return "-"
+    return f"{x * 1000:,.0f}"
+
+
 def fmt_num(x, d=2):
     if x is None or (isinstance(x, float) and not math.isfinite(x)):
         return "-"
@@ -311,9 +318,9 @@ def render_vn(vn):
                 continue
             cells.append(
                 f'<tr><td class="sym">{esc(w["symbol"])}</td>'
-                f'<td class="r">{fmt_num(w.get("close"))}</td>'
+                f'<td class="r">{fmt_vnd(w.get("close"))}</td>'
                 f'<td class="r">{pct_span(w.get("change_pct"))}</td></tr>')
-        html_ += ('<table class="wl"><thead><tr><th>Mã</th><th class="r">Giá</th>'
+        html_ += ('<table class="wl"><thead><tr><th>Mã</th><th class="r">Giá (đ)</th>'
                   '<th class="r">+/-</th></tr></thead><tbody>'
                   + "".join(cells) + "</tbody></table>")
     return html_ or '<p class="muted">Không có dữ liệu VN.</p>'
@@ -335,7 +342,7 @@ def _stock_card(r):
     # summary row (grid)
     summary = f"""
       <div class="vcell sym">{esc(sym)}</div>
-      <div class="vcell r">{fmt_num(r.get('close'))}</div>
+      <div class="vcell r">{fmt_vnd(r.get('close'))}<div class="clab">đồng</div></div>
       <div class="vcell r">{pct_span(r.get('change_1w'))}<div class="clab">tuần</div></div>
       <div class="vcell r">{pct_span(r.get('change_1m'))}<div class="clab">tháng</div></div>
       <div class="vcell r">{fmt_num(pe)} {vs_avg_badge(pe_st.get('vs_avg_pct'))}<div class="clab">P/E vs TB</div></div>
@@ -455,7 +462,7 @@ def render_vn30_table(rows):
         pe_vs = (r.get("pe_stats") or {}).get("vs_avg_pct")
         body += (
             f'<tr><td class="sym" data-v="{esc(r["symbol"])}">{esc(r["symbol"])}</td>'
-            f'{_num_td(r.get("close"))}'
+            f'<td class="r" data-v="{r.get("close") if _finite(r.get("close")) else ""}">{fmt_vnd(r.get("close"))}</td>'
             f'{_num_td(r.get("change_pct"), pct=True)}'
             f'{_num_td(r.get("ret_1y"), pct=True)}'
             f'{_num_td(r.get("pe"))}'
@@ -464,7 +471,7 @@ def render_vn30_table(rows):
             f'{_num_td(pe_vs, pct=True)}'
             f'{_num_td(r.get("w52_pos"), suffix="%")}'
             f'</tr>')
-    cols = [("Mã", "sym"), ("Giá", "px"), ("Δ ngày", "d"), ("Δ 1 năm", "y"),
+    cols = [("Mã", "sym"), ("Giá (đ)", "px"), ("Δ ngày", "d"), ("Δ 1 năm", "y"),
             ("P/E", "pe"), ("P/B", "pb"), ("ROE", "roe"), ("P/E vs TB", "pevs"),
             ("Vị trí 52T", "pos")]
     head = "".join(
