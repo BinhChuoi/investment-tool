@@ -236,14 +236,23 @@ def pe_pb_chart(cid, periods, pe_series, pb_series, pe_avg, pb_avg):
     return chart_canvas(cid, cfg)
 
 
+def _rolling_mean(series, window=12):
+    """Moving average that follows the trend (None until enough points)."""
+    out = []
+    for i in range(len(series)):
+        w = [x for x in series[max(0, i - window + 1): i + 1] if _finite(x)]
+        out.append(round(sum(w) / len(w), 2) if len(w) == min(window, i + 1) and w else None)
+    return out
+
+
 def price_chart(cid, labels, series, avg, log=True):
-    """Long-term price line (log scale) with an all-time average line."""
-    n = len(labels or [])
+    """Long-term price line (log scale) with a moving average that follows the trend."""
+    ma = _rolling_mean(series, 12)
     cfg = {
         "type": "line",
         "data": {"labels": labels, "datasets": [
             _ds("Giá", series, "#4f46e5", "y", fill=True),
-            _ds("TB toàn kỳ", [avg] * n if avg else [], "#f59e0b", "y", dash=True),
+            _ds("TB động 12 tháng", ma, "#f59e0b", "y", dash=True),
         ]},
         "options": {
             "responsive": True, "maintainAspectRatio": False,
