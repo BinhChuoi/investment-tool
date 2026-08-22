@@ -113,7 +113,8 @@ def _price_and_history(s, sym):
 
 
 def _stats(series):
-    vals = [x for x in series if x is not None]
+    import math
+    vals = [x for x in series if isinstance(x, (int, float)) and math.isfinite(x)]
     if not vals:
         return {}
     avg = sum(vals) / len(vals)
@@ -138,9 +139,12 @@ def fetch_fundamentals(v, sym):
     ttm = ttm.sort_values(["yy", "qq"])
     last = ttm.iloc[-1]
 
+    import math
+
     def num(x):
         try:
-            return float(x)
+            f = float(x)
+            return f if math.isfinite(f) else None
         except Exception:
             return None
     pe_series = [round(num(x), 2) if num(x) is not None else None for x in ttm["pe"].tolist()]

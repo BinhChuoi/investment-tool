@@ -15,6 +15,7 @@ import sys
 import os
 import json
 import html
+import math
 import statistics
 from datetime import datetime
 
@@ -38,8 +39,13 @@ def esc(x):
     return html.escape(str(x)) if x is not None else ""
 
 
+def _finite(x):
+    """True if x is a real (non-None, non-NaN, non-inf) number."""
+    return isinstance(x, (int, float)) and math.isfinite(x)
+
+
 def fmt_num(x, d=2):
-    if x is None:
+    if x is None or (isinstance(x, float) and not math.isfinite(x)):
         return "-"
     try:
         return f"{x:,.{d}f}"
@@ -48,7 +54,7 @@ def fmt_num(x, d=2):
 
 
 def pct_span(v):
-    if v is None:
+    if v is None or (isinstance(v, float) and not math.isfinite(v)):
         return '<span class="muted">-</span>'
     cls = "up" if v > 0 else ("down" if v < 0 else "flat")
     sign = "+" if v > 0 else ""
@@ -163,7 +169,7 @@ def multichart(series, labels, w=600, h=220, unit="", baseline=None,
 
 def vs_avg_badge(vs_pct, cheap_is_low=True):
     """Badge: cheap/expensive vs historical average."""
-    if vs_pct is None:
+    if not _finite(vs_pct):
         return ""
     # cheap_is_low: lower ratio = cheaper (P/E, P/B). vs_pct < 0 = below avg = cheap
     cheap = (vs_pct < 0) if cheap_is_low else (vs_pct > 0)
@@ -287,16 +293,16 @@ def _stock_card(r):
 def vn30_aggregate(rows):
     """Aggregate metrics for the whole VN30 basket: median P/E, P/B, ROE + cheap/expensive breadth."""
     def med(key):
-        vals = [r.get(key) for r in rows if r.get(key) is not None]
+        vals = [r.get(key) for r in rows if _finite(r.get(key))]
         return round(statistics.median(vals), 2) if vals else None
     pe_med, pb_med, roe_med = med("pe"), med("pb"), med("roe")
     # breadth: how many stocks are below their own historical average P/E
-    with_stats = [r for r in rows if (r.get("pe_stats") or {}).get("vs_avg_pct") is not None]
-    below = [r for r in with_stats if r["pe_stats"]["vs_avg_pct"] < 0]
-    disc = [r["pe_stats"]["vs_avg_pct"] for r in with_stats]
+    disc = [(r.get("pe_stats") or {}).get("vs_avg_pct") for r in rows]
+    disc = [x for x in disc if _finite(x)]
+    below = [x for x in disc if x < 0]
     avg_disc = round(sum(disc) / len(disc), 1) if disc else None
-    breadth = (f'<b>{len(below)}/{len(with_stats)}</b> mã đang dưới P/E trung bình lịch sử'
-               f' (bình quân {avg_disc:+.0f}% so với TB)') if with_stats else ""
+    breadth = (f'<b>{len(below)}/{len(disc)}</b> mã đang dưới P/E trung bình lịch sử'
+               f' (bình quân {avg_disc:+.0f}% so với TB)') if disc else ""
     return f"""
     <div class="agg">
       <div class="agg-title">📌 Chỉ số chung VN30 ({len(rows)} mã)</div>
