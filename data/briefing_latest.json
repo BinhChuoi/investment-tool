@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-22T12:48:26.071184",
+  "generated_at": "2026-08-22T13:44:38.555265",
   "date": "2026-08-22",
   "vn": {
     "error": null,
@@ -2746,7 +2746,15 @@
       },
       {
         "symbol": "TCX",
-        "error": "price: RetryError[<Future at 0x7f85f869ef50 state=finished raised ConnectionError>]",
+        "close": 41.0,
+        "change_pct": 3.8,
+        "change_1w": 4.73,
+        "change_1m": -0.24,
+        "w52_high": 52.37,
+        "w52_low": 35.3,
+        "w52_pos": 33.0,
+        "ret_1y": 1.56,
+        "volume": 3648900,
         "pe": 18.33,
         "pb": 2.48,
         "roe": 13.7,
@@ -3922,56 +3930,56 @@
   "crypto": {
     "error": null,
     "global": {
-      "total_market_cap_usd": 2634903782215.3667,
-      "total_volume_usd": 162755935854.64938,
-      "btc_dominance": 58.77604748006203,
-      "eth_dominance": 11.111920814939099,
-      "market_cap_change_24h": -0.7718879048664504
+      "total_market_cap_usd": 2627570114907.4263,
+      "total_volume_usd": 157840169309.87207,
+      "btc_dominance": 58.809130490063374,
+      "eth_dominance": 11.109714864484964,
+      "market_cap_change_24h": -1.63737085999961
     },
     "coins": [
       {
         "id": "bitcoin",
         "symbol": "BTC",
         "name": "Bitcoin",
-        "price": 77302,
-        "change_24h": -0.7,
-        "change_7d": 22.5,
-        "change_30d": 17.4,
-        "market_cap": 1551746118446,
-        "ath_change": -38.68779
+        "price": 77194,
+        "change_24h": 0.9,
+        "change_7d": 22.8,
+        "change_30d": 18.0,
+        "market_cap": 1549060200598,
+        "ath_change": -38.77355
       },
       {
         "id": "ethereum",
         "symbol": "ETH",
         "name": "Ethereum",
-        "price": 2428.98,
-        "change_24h": 1.4,
-        "change_7d": 29.0,
-        "change_30d": 25.7,
-        "market_cap": 293139334920,
-        "ath_change": -50.89037
+        "price": 2427.21,
+        "change_24h": 2.6,
+        "change_7d": 29.4,
+        "change_30d": 26.1,
+        "market_cap": 292835860560,
+        "ath_change": -50.92616
       },
       {
         "id": "binancecoin",
         "symbol": "BNB",
         "name": "BNB",
-        "price": 695.86,
-        "change_24h": 2.6,
-        "change_7d": 13.7,
-        "change_30d": 21.9,
-        "market_cap": 92664937235,
-        "ath_change": -49.20684
+        "price": 694.29,
+        "change_24h": 3.2,
+        "change_7d": 13.8,
+        "change_30d": 22.0,
+        "market_cap": 92410070017,
+        "ath_change": -49.32147
       },
       {
         "id": "solana",
         "symbol": "SOL",
         "name": "Solana",
-        "price": 94.08,
-        "change_24h": 2.2,
-        "change_7d": 23.9,
-        "change_30d": 20.0,
-        "market_cap": 54870212380,
-        "ath_change": -67.92487
+        "price": 93.89,
+        "change_24h": 4.2,
+        "change_7d": 24.9,
+        "change_30d": 21.0,
+        "market_cap": 54723772751,
+        "ath_change": -67.99042
       }
     ],
     "fear_greed": {
@@ -4125,7 +4133,7 @@
           73579.69,
           58558.86,
           62813.75,
-          77270.37
+          77225.5
         ],
         "labels": [
           "2014-09",
@@ -4274,10 +4282,10 @@
           "2026-08"
         ],
         "start": "2014-09",
-        "current": 77270.37,
-        "avg_all": 29297.65,
-        "vs_avg_pct": 163.7,
-        "ma200": 68981.78,
+        "current": 77225.5,
+        "avg_all": 29297.34,
+        "vs_avg_pct": 163.6,
+        "ma200": 68981.55,
         "mayer": 1.12
       },
       "ethereum": {
@@ -4387,7 +4395,7 @@
           2004.34,
           1569.58,
           1860.35,
-          2428.92
+          2426.89
         ],
         "labels": [
           "2017-11",
@@ -4498,10 +4506,10 @@
           "2026-08"
         ],
         "start": "2017-11",
-        "current": 2428.92,
-        "avg_all": 1720.55,
-        "vs_avg_pct": 41.2,
-        "ma200": 2005.42,
+        "current": 2426.61,
+        "avg_all": 1720.54,
+        "vs_avg_pct": 41.0,
+        "ma200": 2005.41,
         "mayer": 1.21
       }
     }
@@ -4714,6 +4722,27 @@
   "news": {
     "global_macro": [
       {
+        "title": "‘She’s desperate’: My friend was laid off and lost her health insurance. How can she find affordable coverage?",
+        "link": "https://www.marketwatch.com/story/shes-desperate-my-friend-was-laid-off-and-lost-her-health-insurance-how-can-she-find-affordable-coverage-3b17b553?mod=mw_rss_topstories",
+        "summary": "“She looked into COBRA, but the cost is absolutely ridiculous.”",
+        "published": "2026-08-22T13:45:00Z",
+        "source": "MarketWatch"
+      },
+      {
+        "title": "Our 4-year-old son has $100,000 in his 529 account. Is a bull market a bad time to buy him stocks instead?",
+        "link": "https://www.marketwatch.com/story/our-4-year-old-son-has-100-000-in-his-529-account-should-we-buy-him-stocks-instead-3ca745b2?mod=mw_rss_topstories",
+        "summary": "“I’d love for our son to be able to attend college without needing to take out student loans.”",
+        "published": "2026-08-22T13:01:00Z",
+        "source": "MarketWatch"
+      },
+      {
+        "title": "Why an announcement from the Treasury sparked a rally in gold and bitcoin this week",
+        "link": "https://www.marketwatch.com/story/why-an-announcement-from-the-treasury-sparked-a-rally-in-gold-and-bitcoin-this-week-d9d5972b?mod=mw_rss_topstories",
+        "summary": "Cryptocurrencies and precious metals shot higher, while the U.S. dollar weakened, after the Treasury Department said it planned to double its bond buybacks.",
+        "published": "2026-08-22T13:00:00Z",
+        "source": "MarketWatch"
+      },
+      {
         "title": "Here’s some surprisingly good news for the stock market this midterm election year",
         "link": "https://www.marketwatch.com/story/heres-some-surprisingly-good-news-for-the-stock-market-this-midterm-election-year-d492d3a4?mod=mw_rss_topstories",
         "summary": "There is a strong historical pattern of postmidterm strength.",
@@ -4725,20 +4754,6 @@
         "link": "https://www.marketwatch.com/story/a-massive-corporate-welfare-program-is-underway-and-consumers-want-a-bigger-cut-of-it-0ff06d67?mod=mw_rss_topstories",
         "summary": "Tariff refunds have been flowing back to companies since President Donald Trump’s levies were rejected by the Supreme Court.",
         "published": "2026-08-22T11:00:00Z",
-        "source": "MarketWatch"
-      },
-      {
-        "title": "‘She’s desperate’: My friend was laid off and lost her health insurance. How can she find affordable coverage?",
-        "link": "https://www.marketwatch.com/story/shes-desperate-my-friend-was-laid-off-and-lost-her-health-insurance-how-can-she-find-affordable-coverage-3b17b553?mod=mw_rss_topstories",
-        "summary": "“She looked into COBRA, but the cost is absolutely ridiculous.”",
-        "published": "2026-08-22T10:16:00Z",
-        "source": "MarketWatch"
-      },
-      {
-        "title": "You can now Venmo your kid’s college tuition. But should you?",
-        "link": "https://www.marketwatch.com/story/should-you-venmo-your-tuition-heres-what-to-know-as-colleges-add-new-payment-options-1a70ae96?mod=mw_rss_topstories",
-        "summary": "Some universities will begin accepting the nontraditional payment method as consumers seek flexible spending options.",
-        "published": "2026-08-21T21:20:00Z",
         "source": "MarketWatch"
       },
       {
@@ -4998,7 +5013,14 @@
     ],
     "crypto": [
       {
-        "title": "Bitcoin and Ether bears get decimated amid 'squeeze-led' rally and Musk's X wants to pay creators in stablecoins: Crypto week in 5 stories",
+        "title": "Kalshi off-limits in multiple states as prediction markets, CFTC team up for battle",
+        "link": "https://www.coindesk.com/news-analysis/2026/08/21/kalshi-off-limits-in-multiple-states-as-prediction-markets-cftc-team-up-for-battle",
+        "summary": "",
+        "published": "2026-08-22T13:30:00Z",
+        "source": "CoinDesk"
+      },
+      {
+        "title": "Bitcoin and Ether bears get decimated amid 'squeeze-led' rally and Musk's X wants to pay creators in stablecoins: Crypto's week in 5 stories",
         "link": "https://www.coindesk.com/business/2026/08/22/bitcoin-and-ether-bears-get-decimated-amid-squeeze-led-rally-and-musk-s-x-wants-to-pay-creators-in-stablecoins-crypto-week-in-5-stories",
         "summary": "",
         "published": "2026-08-22T12:00:00Z",
@@ -5065,13 +5087,6 @@
         "link": "https://www.coindesk.com/policy/2026/08/21/nomura-backed-laser-digital-wins-japan-s-first-crypto-approval-in-four-years",
         "summary": "",
         "published": "2026-08-21T10:38:47Z",
-        "source": "CoinDesk"
-      },
-      {
-        "title": "Bitcoin tops $77,000 as best week since 2023 pulls altcoins along for the ride",
-        "link": "https://www.coindesk.com/markets/2026/08/21/bitcoin-tops-usd77-000-as-best-week-since-2023-pulls-altcoins-along-for-the-ride",
-        "summary": "",
-        "published": "2026-08-21T10:15:36Z",
         "source": "CoinDesk"
       }
     ]
