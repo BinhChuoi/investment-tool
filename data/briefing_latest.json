@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-22T14:15:50.479236",
+  "generated_at": "2026-08-22T14:27:09.921378",
   "date": "2026-08-22",
   "vn": {
     "error": null,
@@ -3930,56 +3930,56 @@
   "crypto": {
     "error": null,
     "global": {
-      "total_market_cap_usd": 2624107754028.628,
-      "total_volume_usd": 154958236683.8075,
-      "btc_dominance": 58.802884595809225,
-      "eth_dominance": 11.098986226331908,
-      "market_cap_change_24h": -1.619128542100898
+      "total_market_cap_usd": 2623470816626.2397,
+      "total_volume_usd": 153956319315.1561,
+      "btc_dominance": 58.808343902363866,
+      "eth_dominance": 11.09200901801482,
+      "market_cap_change_24h": -1.6697244291111815
     },
     "coins": [
       {
         "id": "bitcoin",
         "symbol": "BTC",
         "name": "Bitcoin",
-        "price": 77033,
+        "price": 77057,
         "change_24h": 0.2,
         "change_7d": 22.7,
         "change_30d": 18.7,
-        "market_cap": 1546167766871,
-        "ath_change": -38.90149
+        "market_cap": 1546132286880,
+        "ath_change": -38.8823
       },
       {
         "id": "ethereum",
         "symbol": "ETH",
         "name": "Ethereum",
-        "price": 2418.87,
+        "price": 2418.07,
         "change_24h": 1.9,
         "change_7d": 29.2,
         "change_30d": 27.7,
-        "market_cap": 291913204577,
-        "ath_change": -51.09484
+        "market_cap": 291711615332,
+        "ath_change": -51.11111
       },
       {
         "id": "binancecoin",
         "symbol": "BNB",
         "name": "BNB",
-        "price": 692.82,
+        "price": 693.45,
         "change_24h": 2.5,
         "change_7d": 13.9,
         "change_30d": 22.2,
-        "market_cap": 92257581874,
-        "ath_change": -49.42914
+        "market_cap": 92287057204,
+        "ath_change": -49.38321
       },
       {
         "id": "solana",
         "symbol": "SOL",
         "name": "Solana",
-        "price": 93.81,
+        "price": 93.78,
         "change_24h": 3.7,
         "change_7d": 24.9,
         "change_30d": 22.4,
-        "market_cap": 54706675433,
-        "ath_change": -68.01763
+        "market_cap": 54642365392,
+        "ath_change": -68.02717
       }
     ],
     "fear_greed": {
@@ -4133,7 +4133,7 @@
           73579.69,
           58558.86,
           62813.75,
-          76984.61
+          77067.01
         ],
         "labels": [
           "2014-09",
@@ -4282,10 +4282,10 @@
           "2026-08"
         ],
         "start": "2014-09",
-        "current": 76984.61,
-        "avg_all": 29295.67,
-        "vs_avg_pct": 162.8,
-        "ma200": 68980.35,
+        "current": 77067.01,
+        "avg_all": 29296.24,
+        "vs_avg_pct": 163.1,
+        "ma200": 68980.76,
         "mayer": 1.12
       },
       "ethereum": {
@@ -4395,7 +4395,7 @@
           2004.34,
           1569.58,
           1860.35,
-          2415.62
+          2420.16
         ],
         "labels": [
           "2017-11",
@@ -4506,11 +4506,11 @@
           "2026-08"
         ],
         "start": "2017-11",
-        "current": 2415.62,
-        "avg_all": 1720.43,
-        "vs_avg_pct": 40.4,
-        "ma200": 2005.35,
-        "mayer": 1.2
+        "current": 2420.16,
+        "avg_all": 1720.47,
+        "vs_avg_pct": 40.7,
+        "ma200": 2005.38,
+        "mayer": 1.21
       }
     }
   },
