@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-22T13:56:50.576310",
+  "generated_at": "2026-08-22T14:15:50.479236",
   "date": "2026-08-22",
   "vn": {
     "error": null,
@@ -1833,7 +1833,15 @@
       },
       {
         "symbol": "MWG",
-        "error": "price: RetryError[<Future at 0x7f7f90f94690 state=finished raised ConnectionError>]",
+        "close": 75.0,
+        "change_pct": 3.16,
+        "change_1w": 3.59,
+        "change_1m": 6.52,
+        "w52_high": 92.27,
+        "w52_low": 62.33,
+        "w52_pos": 42.0,
+        "ret_1y": 10.38,
+        "volume": 4995900,
         "pe": 11.25,
         "pb": 3.1,
         "roe": 29.2,
@@ -3782,7 +3790,15 @@
       },
       {
         "symbol": "VRE",
-        "error": "price: RetryError[<Future at 0x7f7f90e34290 state=finished raised ConnectionError>]",
+        "close": 25.3,
+        "change_pct": 4.76,
+        "change_1w": 5.64,
+        "change_1m": 15.0,
+        "w52_high": 41.92,
+        "w52_low": 21.3,
+        "w52_pos": 19.0,
+        "ret_1y": -9.68,
+        "volume": 6035600,
         "pe": 7.93,
         "pb": 1.17,
         "roe": 15.0,
@@ -3914,56 +3930,56 @@
   "crypto": {
     "error": null,
     "global": {
-      "total_market_cap_usd": 2637771829521.7285,
-      "total_volume_usd": 157875003254.88052,
-      "btc_dominance": 58.79234026190305,
-      "eth_dominance": 11.11360602072073,
-      "market_cap_change_24h": -1.3701521477930956
+      "total_market_cap_usd": 2624107754028.628,
+      "total_volume_usd": 154958236683.8075,
+      "btc_dominance": 58.802884595809225,
+      "eth_dominance": 11.098986226331908,
+      "market_cap_change_24h": -1.619128542100898
     },
     "coins": [
       {
         "id": "bitcoin",
         "symbol": "BTC",
         "name": "Bitcoin",
-        "price": 77281,
+        "price": 77033,
         "change_24h": 0.2,
         "change_7d": 22.7,
         "change_30d": 18.7,
-        "market_cap": 1551046490134,
-        "ath_change": -38.70468
+        "market_cap": 1546167766871,
+        "ath_change": -38.90149
       },
       {
         "id": "ethereum",
         "symbol": "ETH",
         "name": "Ethereum",
-        "price": 2430.24,
+        "price": 2418.87,
         "change_24h": 1.9,
         "change_7d": 29.2,
         "change_30d": 27.7,
-        "market_cap": 293236265272,
-        "ath_change": -50.86501
+        "market_cap": 291913204577,
+        "ath_change": -51.09484
       },
       {
         "id": "binancecoin",
         "symbol": "BNB",
         "name": "BNB",
-        "price": 695.33,
+        "price": 692.82,
         "change_24h": 2.5,
         "change_7d": 13.9,
         "change_30d": 22.2,
-        "market_cap": 92564093120,
-        "ath_change": -49.24563
+        "market_cap": 92257581874,
+        "ath_change": -49.42914
       },
       {
         "id": "solana",
         "symbol": "SOL",
         "name": "Solana",
-        "price": 94.17,
+        "price": 93.81,
         "change_24h": 3.7,
         "change_7d": 24.9,
         "change_30d": 22.4,
-        "market_cap": 54898075613,
-        "ath_change": -67.89485
+        "market_cap": 54706675433,
+        "ath_change": -68.01763
       }
     ],
     "fear_greed": {
@@ -4117,7 +4133,7 @@
           73579.69,
           58558.86,
           62813.75,
-          77297.7
+          76984.61
         ],
         "labels": [
           "2014-09",
@@ -4266,10 +4282,10 @@
           "2026-08"
         ],
         "start": "2014-09",
-        "current": 77297.7,
-        "avg_all": 29297.84,
-        "vs_avg_pct": 163.8,
-        "ma200": 68981.91,
+        "current": 76984.61,
+        "avg_all": 29295.67,
+        "vs_avg_pct": 162.8,
+        "ma200": 68980.35,
         "mayer": 1.12
       },
       "ethereum": {
@@ -4379,7 +4395,7 @@
           2004.34,
           1569.58,
           1860.35,
-          2429.84
+          2415.62
         ],
         "labels": [
           "2017-11",
@@ -4490,11 +4506,11 @@
           "2026-08"
         ],
         "start": "2017-11",
-        "current": 2429.84,
-        "avg_all": 1720.56,
-        "vs_avg_pct": 41.2,
-        "ma200": 2005.43,
-        "mayer": 1.21
+        "current": 2415.62,
+        "avg_all": 1720.43,
+        "vs_avg_pct": 40.4,
+        "ma200": 2005.35,
+        "mayer": 1.2
       }
     }
   },
@@ -5004,6 +5020,13 @@
     ],
     "crypto": [
       {
+        "title": "Web3 gaming network Sandbox stops Base and BNB chain bridging after exploit",
+        "link": "https://www.coindesk.com/web3/2026/08/22/web3-gaming-network-sandbox-stops-base-and-bnb-chain-bridging-after-exploit",
+        "summary": "",
+        "published": "2026-08-22T14:10:17Z",
+        "source": "CoinDesk"
+      },
+      {
         "title": "Tokenized stocks risk repeating Wall Street’s 1960s ‘paper crisis,’ Fairmint CEO says",
         "link": "https://www.coindesk.com/tech/2026/08/22/tokenized-stocks-risk-repeating-wall-street-s-1960s-paper-crisis-fairmint-ceo-says",
         "summary": "",
@@ -5071,13 +5094,6 @@
         "link": "https://www.coindesk.com/opinion/2026/08/21/the-hard-truth-is-that-the-clarity-act-is-an-anti-crypto-bill",
         "summary": "",
         "published": "2026-08-21T11:30:00Z",
-        "source": "CoinDesk"
-      },
-      {
-        "title": "Bitcoin faces $80,000 test as thinner weekend liquidity looms",
-        "link": "https://www.coindesk.com/daybook-us/2026/08/21/bitcoin-faces-usd80-000-test-as-thinner-weekend-liquidity-looms",
-        "summary": "",
-        "published": "2026-08-21T11:26:27Z",
         "source": "CoinDesk"
       }
     ]
