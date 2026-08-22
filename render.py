@@ -31,6 +31,16 @@ except Exception:
 BASE = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE, "data")
 
+
+def _chartjs_lib():
+    """Return the inlined Chart.js library source (self-contained, works offline)."""
+    path = os.path.join(BASE, "assets", "chart.min.js")
+    try:
+        with open(path, encoding="utf-8") as f:
+            return f.read()
+    except Exception:
+        return "/* chart.min.js not found */"
+
 STATUS_COLOR = {"green": "#16a34a", "yellow": "#d97706", "red": "#dc2626"}
 STATUS_LABEL = {"green": "Tích cực", "yellow": "Trung tính / Thận trọng", "red": "Rủi ro cao"}
 
@@ -179,6 +189,75 @@ def vs_avg_badge(vs_pct, cheap_is_low=True):
     return f'<span class="{cls}" style="font-size:11.5px">({sign}{vs_pct:.0f}% {txt})</span>'
 
 
+# ---------------- Chart.js helpers ----------------
+
+def chart_canvas(cid, cfg, height=240):
+    """A Chart.js canvas carrying its config in data-cfg (lazily initialized by JS)."""
+    data = esc(json.dumps(cfg, ensure_ascii=False))
+    return (f'<div class="chartwrap" style="height:{height}px">'
+            f'<canvas id="{esc(cid)}" class="jschart" data-cfg="{data}"></canvas></div>')
+
+
+def _ds(label, data, color, axis="y", dash=False, fill=False):
+    d = {"label": label, "data": data, "borderColor": color, "backgroundColor": color,
+         "borderWidth": 1.6 if dash else 2, "pointRadius": 0, "tension": 0.25,
+         "spanGaps": True, "yAxisID": axis}
+    if dash:
+        d["borderDash"] = [5, 3]
+    if fill:
+        d["fill"] = True
+        d["backgroundColor"] = color + "22"
+    return d
+
+
+def pe_pb_chart(cid, periods, pe_series, pb_series, pe_avg, pb_avg):
+    """Dual-axis chart: P/E (left) + P/B (right), each with its historical average line."""
+    n = len(periods)
+    cfg = {
+        "type": "line",
+        "data": {"labels": periods, "datasets": [
+            _ds("P/E", pe_series, "#4f46e5", "yl"),
+            _ds("TB P/E", [pe_avg] * n if pe_avg else [], "#4f46e5", "yl", dash=True),
+            _ds("P/B", pb_series, "#0d9488", "yr"),
+            _ds("TB P/B", [pb_avg] * n if pb_avg else [], "#0d9488", "yr", dash=True),
+        ]},
+        "options": {
+            "responsive": True, "maintainAspectRatio": False,
+            "interaction": {"mode": "index", "intersect": False},
+            "plugins": {"legend": {"labels": {"boxWidth": 12, "font": {"size": 11}}}},
+            "scales": {
+                "x": {"grid": {"display": False}, "ticks": {"maxTicksLimit": 8, "maxRotation": 0}},
+                "yl": {"position": "left", "title": {"display": True, "text": "P/E"}},
+                "yr": {"position": "right", "title": {"display": True, "text": "P/B"},
+                       "grid": {"drawOnChartArea": False}},
+            },
+        },
+    }
+    return chart_canvas(cid, cfg)
+
+
+def price_chart(cid, labels, series, avg, log=True):
+    """Long-term price line (log scale) with an all-time average line."""
+    n = len(labels or [])
+    cfg = {
+        "type": "line",
+        "data": {"labels": labels, "datasets": [
+            _ds("Giá", series, "#4f46e5", "y", fill=True),
+            _ds("TB toàn kỳ", [avg] * n if avg else [], "#f59e0b", "y", dash=True),
+        ]},
+        "options": {
+            "responsive": True, "maintainAspectRatio": False,
+            "interaction": {"mode": "index", "intersect": False},
+            "plugins": {"legend": {"labels": {"boxWidth": 12, "font": {"size": 11}}}},
+            "scales": {
+                "x": {"grid": {"display": False}, "ticks": {"maxTicksLimit": 8, "maxRotation": 0}},
+                "y": {"type": "logarithmic" if log else "linear"},
+            },
+        },
+    }
+    return chart_canvas(cid, cfg)
+
+
 # ---------------- Metric strips ----------------
 
 def render_macro(macro):
@@ -258,15 +337,10 @@ def _stock_card(r):
       <div class="vcell mini">{sparkline(r.get('pe_series'), w=90, h=26)}</div>
     """
 
-    # body: one COMBINED P/E & P/B chart normalized to their averages (1.0 = avg)
+    # body: dual-axis Chart.js of P/E (left) & P/B (right) with their average lines
     pe_avg, pb_avg = pe_st.get("avg"), pb_st.get("avg")
     pe_series, pb_series = r.get("pe_series") or [], r.get("pb_series") or []
-    pe_ratio = [round(v / pe_avg, 3) if (v is not None and pe_avg) else None for v in pe_series]
-    pb_ratio = [round(v / pb_avg, 3) if (v is not None and pb_avg) else None for v in pb_series]
-    combo = multichart(
-        [{"values": pe_ratio, "color": "#4f46e5", "label": "P/E"},
-         {"values": pb_ratio, "color": "#0d9488", "label": "P/B"}],
-        periods, baseline=1.0, baseline_label="TB lịch sử", y_is_ratio=True)
+    combo = pe_pb_chart(f"chart_{esc(sym)}", periods, pe_series, pb_series, pe_avg, pb_avg)
 
     def stat_line(name, cur, st, cheap=True):
         if not st:
@@ -279,8 +353,7 @@ def _stock_card(r):
       <div class="carddetail">
         {stat_line("P/E", pe, pe_st)}
         {stat_line("P/B", pb, pb_st)}
-        <div class="chartbox"><div class="charttitle">P/E &amp; P/B so với trung bình {yrs_txt}
-          (đường 1.0 = trung bình lịch sử; dưới 1.0 = rẻ hơn lịch sử)</div>{combo}</div>
+        <div class="chartbox"><div class="charttitle">P/E &amp; P/B theo quý ({yrs_txt}) — đường nét đứt = trung bình lịch sử</div>{combo}</div>
         <div class="statline muted">ROE {fmt_num(r.get('roe'))}% · giá 52 tuần:
           {fmt_num(r.get('w52_low'))} – {fmt_num(r.get('w52_high'))} (hiện ở {fmt_num(r.get('w52_pos'))}% dải) ·
           Δ 1 năm {r.get('ret_1y')}%</div>
@@ -315,6 +388,49 @@ def vn30_aggregate(rows):
     </div>"""
 
 
+def _num_td(v, suffix="", pct=False):
+    """A right-aligned table cell with data-v for numeric sorting."""
+    if not _finite(v):
+        return '<td class="r muted" data-v="">-</td>'
+    if pct:
+        cls = "up" if v > 0 else ("down" if v < 0 else "")
+        sign = "+" if v > 0 else ""
+        return f'<td class="r {cls}" data-v="{v}">{sign}{v:.2f}%</td>'
+    return f'<td class="r" data-v="{v}">{fmt_num(v)}{suffix}</td>'
+
+
+def render_vn30_table(rows):
+    """Sortable + filterable VN30 table."""
+    body = ""
+    for r in rows:
+        pe_vs = (r.get("pe_stats") or {}).get("vs_avg_pct")
+        body += (
+            f'<tr><td class="sym" data-v="{esc(r["symbol"])}">{esc(r["symbol"])}</td>'
+            f'{_num_td(r.get("close"))}'
+            f'{_num_td(r.get("change_pct"), pct=True)}'
+            f'{_num_td(r.get("ret_1y"), pct=True)}'
+            f'{_num_td(r.get("pe"))}'
+            f'{_num_td(r.get("pb"))}'
+            f'{_num_td(r.get("roe"), suffix="%")}'
+            f'{_num_td(pe_vs, pct=True)}'
+            f'{_num_td(r.get("w52_pos"), suffix="%")}'
+            f'</tr>')
+    cols = [("Mã", "sym"), ("Giá", "px"), ("Δ ngày", "d"), ("Δ 1 năm", "y"),
+            ("P/E", "pe"), ("P/B", "pb"), ("ROE", "roe"), ("P/E vs TB", "pevs"),
+            ("Vị trí 52T", "pos")]
+    head = "".join(
+        f'<th data-key="{k}" onclick="sortTable(this)"'
+        f'{"" if i == 0 else " class=r"}>{esc(lbl)}</th>'
+        for i, (lbl, k) in enumerate(cols))
+    return f"""
+    <input class="tblfilter" data-table="vn30tbl" oninput="filterTable(this)" placeholder="Lọc mã... (vd FPT)">
+    <div class="tblwrap"><table class="vn30" id="vn30tbl">
+      <thead><tr>{head}</tr></thead>
+      <tbody>{body}</tbody>
+    </table></div>
+    <div class="sub" style="margin-top:6px">Bấm tiêu đề cột để sắp xếp · "P/E vs TB" âm = rẻ hơn trung bình lịch sử.</div>"""
+
+
 def render_vn30(vn):
     rows = [r for r in vn.get("vn30", []) if r.get("close") is not None]
     if not rows:
@@ -323,19 +439,12 @@ def render_vn30(vn):
     cards = "".join(_stock_card(r) for r in rows)
     return f"""
     {vn30_aggregate(rows)}
-    <div class="sub" style="margin-bottom:8px">30 cổ phiếu VN30 · định giá TTM mới nhất {esc(period)}.
-      Mỗi dòng: Δ <b>tuần</b> / <b>tháng</b> + P/E, P/B so với <b>trung bình lịch sử (~8 năm)</b>.
-      <b>Bấm vào một mã</b> để xem biểu đồ P/E &amp; P/B dài hạn.</div>
-    <div class="vhead">
-      <div class="vcell">Mã</div><div class="vcell r">Giá</div>
-      <div class="vcell r">Δ tuần</div><div class="vcell r">Δ tháng</div>
-      <div class="vcell r">P/E vs TB</div><div class="vcell r">P/B vs TB</div>
-      <div class="vcell">P/E ~8N</div>
-    </div>
-    {cards}
-    <div class="sub" style="margin-top:8px">Nhãn <span class="up">dưới TB</span> = đang rẻ hơn trung bình lịch sử của chính mã đó;
-      <span class="down">trên TB</span> = đắt hơn. Chỉ mang tính tham khảo, KHÔNG phải khuyến nghị.
-      Dữ liệu P/E/P/B chỉ có ~8 năm (từ 2018).</div>"""
+    <div class="sub" style="margin-bottom:8px">30 cổ phiếu VN30 · định giá TTM mới nhất {esc(period)}.</div>
+    {render_vn30_table(rows)}
+    <details class="chartswrap" style="margin-top:14px"><summary>&#128200; Xem biểu đồ P/E &amp; P/B từng mã</summary>
+      <div class="sub" style="margin:8px 0">Bấm vào một mã để xem biểu đồ dài hạn (~8 năm).</div>
+      {cards}
+    </details>"""
 
 
 def render_crypto(cr):
@@ -390,10 +499,8 @@ def _crypto_card(coin, coin_data, lt):
       <div class="vcell r">{fmt_num(lt.get('mayer'))}<div class="clab">Mayer</div></div>
       <div class="vcell mini">{sparkline(lt.get('series'), w=90, h=26)}</div>
     """
-    chart = multichart(
-        [{"values": lt.get("series") or [], "color": "#4f46e5", "label": "Giá tháng"}],
-        lt.get("labels"), unit="", baseline=lt.get("avg_all"),
-        baseline_label="TB toàn kỳ")
+    chart = price_chart(f"chart_{coin}", lt.get("labels"), lt.get("series") or [],
+                        lt.get("avg_all"), log=True)
     mayer = lt.get("mayer")
     mayer_note = ""
     if mayer is not None:
@@ -693,6 +800,12 @@ header h1{margin:0 0 4px;font-size:22px;}
 .disc{background:#fffbeb;color:#92400e;border:1px solid #fde68a;border-radius:8px;padding:8px 12px;font-size:12.5px;margin:10px 0 20px;}
 @media (prefers-color-scheme:dark){.disc{background:#2a2413;color:#fcd34d;border-color:#544a1f;}}
 h2{font-size:18px;margin:22px 0 10px;} h3{font-size:15px;margin:0;} h4{margin:0 0 6px;font-size:13.5px;}
+.tabbar{display:flex;gap:4px;overflow-x:auto;position:sticky;top:0;z-index:20;background:var(--bg);
+  padding:8px 0;margin-bottom:12px;border-bottom:1px solid var(--line);-webkit-overflow-scrolling:touch;}
+.tab{flex:0 0 auto;background:transparent;border:1px solid var(--line);color:var(--muted);
+  border-radius:999px;padding:7px 14px;font-size:13.5px;font-weight:600;cursor:pointer;white-space:nowrap;}
+.tab.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.tabpanel{display:none;} .tabpanel.active{display:block;}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px;}
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
 @media(max-width:820px){.grid3{grid-template-columns:1fr;}}
@@ -747,6 +860,12 @@ a{color:var(--accent);}
 .statline{font-size:13px;margin:6px 0;}
 .chartbox{margin:6px 0 12px;border:1px solid var(--line);border-radius:8px;padding:8px;}
 .charttitle{font-size:11.5px;color:var(--muted);margin-bottom:4px;}
+.chartwrap{position:relative;width:100%;}
+.chartwrap canvas{width:100%!important;}
+th[data-key]{cursor:pointer;user-select:none;} th[data-key]:hover{color:var(--accent);}
+th.sort-asc::after{content:" \\2191";} th.sort-desc::after{content:" \\2193";}
+.tblfilter{margin:0 0 8px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;
+  background:var(--card);color:var(--txt);font-size:13px;width:180px;max-width:100%;}
 svg.lc{display:block;width:100%;height:auto;}
 .chartleg{font-size:11.5px;color:var(--muted);margin-bottom:4px;}
 .lgd{display:inline-flex;align-items:center;gap:4px;}
@@ -782,6 +901,7 @@ table.vn30 tbody tr:hover{background:rgba(127,127,127,.06);}
 .nbcount{color:var(--muted);font-weight:400;font-size:12.5px;}
 .nbnew{color:var(--accent);font-weight:700;}
 .hot{font-size:12px;}
+details.chartswrap>summary{cursor:pointer;font-weight:600;color:var(--accent);padding:6px 0;}
 .newsitem{padding:9px 4px 9px 12px;border-bottom:1px solid var(--line);position:relative;transition:opacity .15s;}
 .newsitem.is-new{border-left:3px solid var(--accent);background:rgba(79,70,229,.045);border-radius:0 6px 6px 0;}
 .newsitem.is-new .ntitle::before{content:"MỚI";background:var(--accent);color:#fff;font-size:9px;
@@ -795,6 +915,48 @@ table.vn30 tbody tr:hover{background:rgba(127,127,127,.06);}
 JS = """
 <script>
 (function(){
+  // ---- Chart.js theme defaults (match light/dark) ----
+  if(window.Chart){
+    try{
+      var cs=getComputedStyle(document.body);
+      Chart.defaults.color = (cs.getPropertyValue('--muted')||'#888').trim();
+      Chart.defaults.borderColor = (cs.getPropertyValue('--line')||'#ddd').trim();
+      Chart.defaults.font.size = 11;
+      Chart.defaults.maintainAspectRatio = false;
+    }catch(e){}
+  }
+  // ---- Chart.js lazy init ----
+  function initChart(cv){
+    if(!cv || cv.dataset.done) return;
+    try{
+      var cfg = JSON.parse(cv.getAttribute('data-cfg'));
+      cv.dataset.done = "1";
+      new Chart(cv.getContext('2d'), cfg);
+    }catch(e){ /* ignore */ }
+  }
+  function initIn(root){ (root||document).querySelectorAll('canvas.jschart').forEach(function(cv){
+    if(cv.offsetParent !== null) initChart(cv);   // only when actually visible
+  }); }
+
+  // ---- Tabs ----
+  window.showTab=function(id){
+    document.querySelectorAll('.tab').forEach(function(t){ t.classList.toggle('active', t.dataset.tab===id); });
+    document.querySelectorAll('.tabpanel').forEach(function(p){ p.classList.toggle('active', p.id==='tab-'+id); });
+    var panel=document.getElementById('tab-'+id);
+    if(panel) initIn(panel);
+    if(window.scrollTo) window.scrollTo({top:0,behavior:'instant'});
+  };
+  document.addEventListener('click',function(e){
+    var t=e.target.closest('.tab'); if(t){ window.showTab(t.dataset.tab); }
+  });
+
+  // ---- Init charts when a <details> opens ----
+  document.addEventListener('toggle', function(e){
+    var d=e.target;
+    if(d.tagName==='DETAILS' && d.open) initIn(d);
+  }, true);
+
+  // ---- News: only-new toggle ----
   window.toggleOnlyNew=function(){
     var el=document.getElementById('onlynew');
     var only = el && el.checked;
@@ -807,6 +969,36 @@ JS = """
       b.style.display = (only && !hasNew) ? 'none' : '';
     });
   };
+
+  // ---- Sortable tables (click header th[data-key]) ----
+  window.sortTable=function(th){
+    var table=th.closest('table'), tb=table.tBodies[0];
+    var key=th.getAttribute('data-key');
+    var idx=Array.prototype.indexOf.call(th.parentNode.children, th);
+    var asc = th.classList.contains('sort-asc') ? false : true;
+    table.querySelectorAll('th').forEach(function(h){ h.classList.remove('sort-asc','sort-desc'); });
+    th.classList.add(asc?'sort-asc':'sort-desc');
+    var rows=Array.prototype.slice.call(tb.rows);
+    rows.sort(function(a,b){
+      var x=a.cells[idx].getAttribute('data-v'), y=b.cells[idx].getAttribute('data-v');
+      var nx=parseFloat(x), ny=parseFloat(y);
+      var both=!isNaN(nx)&&!isNaN(ny);
+      if(both){ return asc?nx-ny:ny-nx; }
+      x=(x||'').toString(); y=(y||'').toString();
+      return asc? x.localeCompare(y) : y.localeCompare(x);
+    });
+    rows.forEach(function(r){ tb.appendChild(r); });
+  };
+  window.filterTable=function(inp){
+    var q=(inp.value||'').toUpperCase();
+    var tb=document.getElementById(inp.getAttribute('data-table')).tBodies[0];
+    Array.prototype.slice.call(tb.rows).forEach(function(r){
+      r.style.display = r.cells[0].textContent.toUpperCase().indexOf(q)>=0 ? '' : 'none';
+    });
+  };
+
+  document.addEventListener('DOMContentLoaded', function(){ initIn(document); });
+  initIn(document);
 })();
 </script>
 """
@@ -816,6 +1008,18 @@ def page_content(brief, assess, news_rows, watermark, prev_snapshot):
     """Page content (style + body + script), WITHOUT doctype/html/head/body.
     Shared by the standalone report.html and the Artifact (body-only) build."""
     gen = brief.get("generated_at", "")[:16].replace("T", " ")
+    tabs = [
+        ("overview", "Tổng quan", "&#128202;"),
+        ("vn30", "VN30", "&#127974;"),
+        ("crypto", "Crypto", "&#8383;"),
+        ("macro", "Vĩ mô", "&#127758;"),
+        ("news", "Tin tức", "&#128240;"),
+    ]
+    tabbar = "".join(
+        f'<button class="tab{" active" if i == 0 else ""}" data-tab="{tid}">'
+        f'{icon} {esc(label)}</button>'
+        for i, (tid, label, icon) in enumerate(tabs))
+
     return f"""<style>{CSS}</style>
 <div class="wrap">
   <header>
@@ -825,31 +1029,47 @@ def page_content(brief, assess, news_rows, watermark, prev_snapshot):
   <div class="disc">&#9888; Đây là công cụ <b>tổng hợp dữ liệu &amp; đánh giá tham khảo</b>, KHÔNG phải
     khuyến nghị mua/bán. Mọi quyết định đầu tư do bạn tự chịu trách nhiệm.</div>
 
-  {render_assessment(assess)}
+  <div class="tabbar">{tabbar}</div>
 
-  <h2>&#128197; So sánh tuần (Week-over-Week)</h2>
-  <div class="card">{render_wow(brief, prev_snapshot)}</div>
+  <section class="tabpanel active" id="tab-overview">
+    {render_assessment(assess)}
+    <h2>&#128197; So sánh tuần (Week-over-Week)</h2>
+    <div class="card">{render_wow(brief, prev_snapshot)}</div>
+    <h2>&#128200; Số liệu nhanh</h2>
+    <div class="grid3">
+      <div class="card"><h3>Vĩ mô toàn cầu</h3>{render_macro(brief.get('macro',{}))}</div>
+      <div class="card"><h3>Chứng khoán VN</h3>{render_vn(brief.get('vn',{}))}</div>
+      <div class="card"><h3>Crypto</h3>{render_crypto(brief.get('crypto',{}))}</div>
+    </div>
+  </section>
 
-  <h2>&#128200; Số liệu thị trường</h2>
-  <div class="grid3">
-    <div class="card"><h3>Vĩ mô toàn cầu</h3>{render_macro(brief.get('macro',{}))}</div>
-    <div class="card"><h3>Chứng khoán VN</h3>{render_vn(brief.get('vn',{}))}</div>
-    <div class="card"><h3>Crypto</h3>{render_crypto(brief.get('crypto',{}))}</div>
-  </div>
+  <section class="tabpanel" id="tab-vn30">
+    <h2>&#127974; VN30 &middot; Định giá vs Lịch sử</h2>
+    <div class="card">{render_vn30(brief.get('vn',{}))}</div>
+  </section>
 
-  <h2>&#127974; VN30 &middot; Định giá vs Lịch sử (P/E, P/B)</h2>
-  <div class="card">{render_vn30(brief.get('vn',{}))}</div>
+  <section class="tabpanel" id="tab-crypto">
+    <h2>&#8383; Crypto &middot; Số liệu</h2>
+    <div class="card">{render_crypto(brief.get('crypto',{}))}</div>
+    <h2>&#8383; Crypto &middot; Định giá dài hạn (BTC, ETH)</h2>
+    <div class="card">{render_crypto_valuation(brief.get('crypto',{}))}</div>
+  </section>
 
-  <h2>&#8383; Crypto &middot; Định giá dài hạn (BTC, ETH)</h2>
-  <div class="card">{render_crypto_valuation(brief.get('crypto',{}))}</div>
+  <section class="tabpanel" id="tab-macro">
+    <h2>&#127758; Vĩ mô toàn cầu</h2>
+    <div class="card">{render_macro(brief.get('macro',{}))}</div>
+  </section>
 
-  <h2>&#128240; Tin tức (bằng chứng)</h2>
-  <div class="card">{render_news(news_rows)}</div>
+  <section class="tabpanel" id="tab-news">
+    <h2>&#128240; Tin tức (bằng chứng)</h2>
+    <div class="card">{render_news(news_rows)}</div>
+  </section>
 
   <div class="sub" style="margin-top:20px;text-align:center;">
     Tạo bởi tool theo dõi đầu tư &middot; Claude Code
   </div>
 </div>
+<script>{_chartjs_lib()}</script>
 {JS}"""
 
 
