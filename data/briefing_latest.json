@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-22T15:34:44.986366",
+  "generated_at": "2026-08-22T12:48:26.071184",
   "date": "2026-08-22",
   "vn": {
     "error": null,
@@ -1833,7 +1833,15 @@
       },
       {
         "symbol": "MWG",
-        "error": "price: RetryError[<Future at 0x1a0d5450090 state=finished raised ConnectionError>]",
+        "close": 75.0,
+        "change_pct": 3.16,
+        "change_1w": 3.59,
+        "change_1m": 6.52,
+        "w52_high": 92.27,
+        "w52_low": 62.33,
+        "w52_pos": 42.0,
+        "ret_1y": 10.38,
+        "volume": 4995900,
         "pe": 11.25,
         "pb": 3.1,
         "roe": 29.2,
@@ -2738,15 +2746,7 @@
       },
       {
         "symbol": "TCX",
-        "close": 41.0,
-        "change_pct": 3.8,
-        "change_1w": 4.73,
-        "change_1m": -0.24,
-        "w52_high": 52.37,
-        "w52_low": 35.3,
-        "w52_pos": 33.0,
-        "ret_1y": 1.56,
-        "volume": 3648900,
+        "error": "price: RetryError[<Future at 0x7f85f869ef50 state=finished raised ConnectionError>]",
         "pe": 18.33,
         "pb": 2.48,
         "roe": 13.7,
@@ -3922,56 +3922,56 @@
   "crypto": {
     "error": null,
     "global": {
-      "total_market_cap_usd": 2621280788989.694,
-      "total_volume_usd": 184018755375.79874,
-      "btc_dominance": 58.788783129854295,
-      "eth_dominance": 11.088576841151022,
-      "market_cap_change_24h": -0.8515049327433389
+      "total_market_cap_usd": 2634903782215.3667,
+      "total_volume_usd": 162755935854.64938,
+      "btc_dominance": 58.77604748006203,
+      "eth_dominance": 11.111920814939099,
+      "market_cap_change_24h": -0.7718879048664504
     },
     "coins": [
       {
         "id": "bitcoin",
         "symbol": "BTC",
         "name": "Bitcoin",
-        "price": 77127,
-        "change_24h": 2.1,
-        "change_7d": 22.6,
-        "change_30d": 17.6,
-        "market_cap": 1548395837634,
-        "ath_change": -38.82715
+        "price": 77302,
+        "change_24h": -0.7,
+        "change_7d": 22.5,
+        "change_30d": 17.4,
+        "market_cap": 1551746118446,
+        "ath_change": -38.68779
       },
       {
         "id": "ethereum",
         "symbol": "ETH",
         "name": "Ethereum",
-        "price": 2418.3,
-        "change_24h": 2.5,
-        "change_7d": 29.5,
-        "change_30d": 26.5,
-        "market_cap": 291952644987,
-        "ath_change": -51.10635
+        "price": 2428.98,
+        "change_24h": 1.4,
+        "change_7d": 29.0,
+        "change_30d": 25.7,
+        "market_cap": 293139334920,
+        "ath_change": -50.89037
       },
       {
         "id": "binancecoin",
         "symbol": "BNB",
         "name": "BNB",
-        "price": 696.86,
-        "change_24h": 5.7,
-        "change_7d": 15.4,
-        "change_30d": 23.8,
-        "market_cap": 92834165479,
-        "ath_change": -49.13435
+        "price": 695.86,
+        "change_24h": 2.6,
+        "change_7d": 13.7,
+        "change_30d": 21.9,
+        "market_cap": 92664937235,
+        "ath_change": -49.20684
       },
       {
         "id": "solana",
         "symbol": "SOL",
         "name": "Solana",
-        "price": 93.26,
-        "change_24h": 4.4,
-        "change_7d": 25.4,
-        "change_30d": 21.9,
-        "market_cap": 54419119506,
-        "ath_change": -68.20591
+        "price": 94.08,
+        "change_24h": 2.2,
+        "change_7d": 23.9,
+        "change_30d": 20.0,
+        "market_cap": 54870212380,
+        "ath_change": -67.92487
       }
     ],
     "fear_greed": {
@@ -4125,7 +4125,7 @@
           73579.69,
           58558.86,
           62813.75,
-          73032.76
+          77270.37
         ],
         "labels": [
           "2014-09",
@@ -4274,10 +4274,10 @@
           "2026-08"
         ],
         "start": "2014-09",
-        "current": 77104.69,
-        "avg_all": 29268.22,
-        "vs_avg_pct": 163.4,
-        "ma200": 68980.95,
+        "current": 77270.37,
+        "avg_all": 29297.65,
+        "vs_avg_pct": 163.7,
+        "ma200": 68981.78,
         "mayer": 1.12
       },
       "ethereum": {
@@ -4387,7 +4387,7 @@
           2004.34,
           1569.58,
           1860.35,
-          2326.38
+          2428.92
         ],
         "labels": [
           "2017-11",
@@ -4498,10 +4498,10 @@
           "2026-08"
         ],
         "start": "2017-11",
-        "current": 2418.3,
-        "avg_all": 1719.59,
-        "vs_avg_pct": 40.6,
-        "ma200": 2005.37,
+        "current": 2428.92,
+        "avg_all": 1720.55,
+        "vs_avg_pct": 41.2,
+        "ma200": 2005.42,
         "mayer": 1.21
       }
     }
@@ -4714,45 +4714,31 @@
   "news": {
     "global_macro": [
       {
+        "title": "Here’s some surprisingly good news for the stock market this midterm election year",
+        "link": "https://www.marketwatch.com/story/heres-some-surprisingly-good-news-for-the-stock-market-this-midterm-election-year-d492d3a4?mod=mw_rss_topstories",
+        "summary": "There is a strong historical pattern of postmidterm strength.",
+        "published": "2026-08-22T12:00:00Z",
+        "source": "MarketWatch"
+      },
+      {
+        "title": "A massive ‘corporate welfare’ program is underway — and consumers want a bigger cut of it",
+        "link": "https://www.marketwatch.com/story/a-massive-corporate-welfare-program-is-underway-and-consumers-want-a-bigger-cut-of-it-0ff06d67?mod=mw_rss_topstories",
+        "summary": "Tariff refunds have been flowing back to companies since President Donald Trump’s levies were rejected by the Supreme Court.",
+        "published": "2026-08-22T11:00:00Z",
+        "source": "MarketWatch"
+      },
+      {
+        "title": "‘She’s desperate’: My friend was laid off and lost her health insurance. How can she find affordable coverage?",
+        "link": "https://www.marketwatch.com/story/shes-desperate-my-friend-was-laid-off-and-lost-her-health-insurance-how-can-she-find-affordable-coverage-3b17b553?mod=mw_rss_topstories",
+        "summary": "“She looked into COBRA, but the cost is absolutely ridiculous.”",
+        "published": "2026-08-22T10:16:00Z",
+        "source": "MarketWatch"
+      },
+      {
         "title": "You can now Venmo your kid’s college tuition. But should you?",
         "link": "https://www.marketwatch.com/story/should-you-venmo-your-tuition-heres-what-to-know-as-colleges-add-new-payment-options-1a70ae96?mod=mw_rss_topstories",
         "summary": "Some universities will begin accepting the nontraditional payment method as consumers seek flexible spending options.",
         "published": "2026-08-21T21:20:00Z",
-        "source": "MarketWatch"
-      },
-      {
-        "title": "Tesla’s stock jumps as the company gets cleared for a Las Vegas robotaxi launch",
-        "link": "https://www.marketwatch.com/story/tesla-stocks-jumps-as-the-company-gets-ready-for-a-robotaxi-push-c680f87f?mod=mw_rss_topstories",
-        "summary": "The automaker plans to soon launch its Cybercab in Austin, Texas, and got the nod to deploy thousands of vehicles in Nevada.",
-        "published": "2026-08-21T20:34:00Z",
-        "source": "MarketWatch"
-      },
-      {
-        "title": "Retirees: This investment gives you a guaranteed 5% safe withdrawal rate",
-        "link": "https://www.marketwatch.com/story/retirees-this-investment-gives-you-a-guaranteed-5-safe-withdrawal-rate-facdfd76?mod=mw_rss_topstories",
-        "summary": "TIPS yields are at or close to 20-year highs.",
-        "published": "2026-08-21T20:11:00Z",
-        "source": "MarketWatch"
-      },
-      {
-        "title": "Here’s how Bessent’s newly activist Treasury Department is undercutting the Fed’s Warsh",
-        "link": "https://www.marketwatch.com/story/heres-how-bessents-newly-activist-treasury-department-is-undercutting-the-feds-warsh-480455c2?mod=mw_rss_topstories",
-        "summary": "The surprising move this week by Treasury Secretary Scott Bessent to intervene in Treasury markets to lower the cost of government debt undercuts the credibility of Federal Reserve Chairman Kevin Warsh to make interest-rate policy, experts said.",
-        "published": "2026-08-21T20:11:00Z",
-        "source": "MarketWatch"
-      },
-      {
-        "title": "Former JPMorgan exec takes on Social Security advisory role",
-        "link": "https://www.marketwatch.com/story/former-jpmorgan-exec-takes-on-social-security-advisory-role-d0cf6e4f?mod=mw_rss_topstories",
-        "summary": "Matt Zames will take on an unpaid adviser position at the Social Security Administration, according to reports.",
-        "published": "2026-08-21T19:11:00Z",
-        "source": "MarketWatch"
-      },
-      {
-        "title": "Trump, Vance and Bessent try to calm the bond market with ‘alternative facts’",
-        "link": "https://www.marketwatch.com/story/trump-vance-and-bessent-try-to-calm-the-bond-market-with-alternative-facts-8e424378?mod=mw_rss_topstories",
-        "summary": "Maybe this stuff works on TV or on the stump. But it doesn’t work on Wall Street, where people can count.",
-        "published": "2026-08-21T18:29:00Z",
         "source": "MarketWatch"
       },
       {
@@ -4834,6 +4820,55 @@
       }
     ],
     "vn": [
+      {
+        "title": "Đàm phán thương mại Mỹ - Canada đổ bể",
+        "link": "https://vnexpress.net/dam-phan-thuong-mai-my-canada-do-be-5112231.html",
+        "summary": "Do đàm phán đổ bể, Mỹ chính thức áp thuế lên 20 tỷ USD hàng hóa Canada từ 22/8, khiến Ottawa tuyên bố sẽ có biện pháp trả đũa.",
+        "published": "2026-08-22T11:37:22Z",
+        "source": "VnExpress - Kinh doanh"
+      },
+      {
+        "title": "Hộ kinh doanh nào có thể được giảm 30% thuế?",
+        "link": "https://vnexpress.net/ho-kinh-doanh-nao-co-the-duoc-giam-30-thue-5112214.html",
+        "summary": "Bộ trưởng Tài chính cho biết 99,98% hộ kinh doanh hiện nay có doanh thu ở dưới ngưỡng 10 tỷ đồng một năm nên đều có thể được giảm 30% thuế.",
+        "published": "2026-08-22T11:22:02Z",
+        "source": "VnExpress - Kinh doanh"
+      },
+      {
+        "title": "Cục Thuế yêu cầu giảm giấy tờ, không để người nộp thuế bổ sung hồ sơ nhiều lần",
+        "link": "https://cafef.vn/cuc-thue-yeu-cau-giam-giay-to-khong-de-nguoi-nop-thue-bo-sung-ho-so-nhieu-lan-188260822165017101.chn",
+        "summary": "Người nộp thuế sẽ được giảm một bước giấy tờ khi làm thủ tục hành chính khi cơ quan thuế phải chủ động khai thác dữ liệu đã có, thay vì yêu cầu tổ chức, cá nhân cung cấp lại những thông tin Nhà nước đã quản lý.",
+        "published": "2026-08-22T10:56:00Z",
+        "source": "CafeF - Vi mo"
+      },
+      {
+        "title": "Doanh thu dưới 1 tỷ, chủ hộ kinh doanh có được hoàn tiền BHXH bắt buộc?",
+        "link": "https://cafef.vn/doanh-thu-duoi-1-ty-chu-ho-kinh-doanh-co-duoc-hoan-tien-bhxh-bat-buoc-188260822163613687.chn",
+        "summary": "Theo quy định, từ ngày 01/01/2026, chủ hộ kinh doanh có mức kê khai doanh thu hằng năm trên 01 tỷ đồng thuộc đối tượng tham gia BHXH bắt buộc, doanh thu dưới 01 tỷ đồng thì không thuộc đối tượng tham gia BHXH bắt buộc mà có thể tham gia BHXH tự nguyện.",
+        "published": "2026-08-22T10:30:00Z",
+        "source": "CafeF - Vi mo"
+      },
+      {
+        "title": "Giá vàng lên mức cao nhất trong tháng",
+        "link": "https://cafef.vn/gia-vang-len-muc-cao-nhat-trong-thang-188260822163137482.chn",
+        "summary": "Sau khi lập đỉnh trong tháng vào ngày hôm qua, giá vàng miếng tiếp tục ghi nhận mức đỉnh mới trong hôm nay.",
+        "published": "2026-08-22T09:31:00Z",
+        "source": "CafeF - Chung khoan"
+      },
+      {
+        "title": "Một công ty chứng khoán phải giải trình với UBCKNN",
+        "link": "https://cafef.vn/mot-cong-ty-chung-khoan-phai-giai-trinh-voi-ubcknn-188260822162235344.chn",
+        "summary": "Để khắc phục tình trạng, công ty chứng khoán cho biết đang triển khai kế hoạch tăng vốn điều lệ.",
+        "published": "2026-08-22T09:22:00Z",
+        "source": "CafeF - Chung khoan"
+      },
+      {
+        "title": "Chuẩn hóa dữ liệu thuế đất: Người dân cần làm gì khi phát hiện sai sót?",
+        "link": "https://cafef.vn/chuan-hoa-du-lieu-thue-dat-nguoi-dan-can-lam-gi-khi-phat-hien-sai-sot-18826082216141678.chn",
+        "summary": "Cơ quan thuế đang rà soát, làm sạch và chuẩn hóa dữ liệu thuế sử dụng đất phi nông nghiệp. Người nộp thuế cần chủ động kiểm tra ngay thông tin về người sử dụng đất, thửa đất, địa chỉ và tình trạng thực hiện nghĩa vụ thuế.",
+        "published": "2026-08-22T09:17:00Z",
+        "source": "CafeF - Vi mo"
+      },
       {
         "title": "Đà Nẵng: Khởi công Khu công nghiệp Tam Thăng mở rộng 2",
         "link": "https://cafef.vn/da-nang-khoi-cong-khu-cong-nghiep-tam-thang-mo-rong-2-188260822151732943.chn",
@@ -4940,32 +4975,11 @@
         "source": "CafeF - Chung khoan"
       },
       {
-        "title": "Thủ tướng chỉ đạo giải quyết dứt điểm, thiết thực, hiệu quả các khó khăn, vướng mắc của doanh nghiệp",
-        "link": "https://cafef.vn/thu-tuong-chi-dao-giai-quyet-dut-diem-thiet-thuc-hieu-qua-cac-kho-khan-vuong-mac-cua-doanh-nghiep-188260821203625339.chn",
-        "summary": "Để tạo điều kiện cho các doanh nghiệp yên tâm đầu tư, mở rộng hoạt động sản xuất kinh doanh, nâng cao năng lực cạnh tranh, Thủ tướng Chính phủ đã chỉ đạo các Bộ, ngành liên quan xử lý dứt điểm, thiết thực, hiệu quả các khó khăn, vướng mắc, kiến nghị của doanh nghiệp, hiệp hội doa",
-        "published": "2026-08-22T02:00:00Z",
-        "source": "CafeF - Vi mo"
-      },
-      {
-        "title": "Cao tốc Hữu Nghị - Chi Lăng bị sạt trượt, yêu cầu khắc phục trước 30/8",
-        "link": "https://cafef.vn/cao-toc-huu-nghi-chi-lang-bi-sat-truot-yeu-cau-khac-phuc-truoc-30-8-188260822072538562.chn",
-        "summary": "Do mưa nhiều cộng với nền đất mới đắp có độ dốc cao, những ngày vừa qua dự án cao tốc Hữu Nghị - Chi Lăng đã xảy ra tình trạng sạt trượt mái taluy và bờ lan can bảo vệ. Nhà đầu tư dự án vừa cho biết, đã yêu cầu các nhà thầu khắc phục xong trước 30/8.",
-        "published": "2026-08-22T01:32:00Z",
-        "source": "CafeF - Vi mo"
-      },
-      {
         "title": "Giá vàng thế giới tiếp tục vượt 4.600 USD",
         "link": "https://vnexpress.net/gia-vang-the-gioi-tiep-tuc-vuot-4-600-usd-5111936.html",
         "summary": "Mỗi ounce vàng lên cao nhất 3 tháng trong phiên cuối tuần, ghi nhận tuần tăng thứ 3 liên tiếp.",
         "published": "2026-08-22T01:10:50Z",
         "source": "VnExpress - Kinh doanh"
-      },
-      {
-        "title": "ĐBQH đề xuất giảm thuế thu nhập, nâng mức giảm trừ với người 'làm công ăn lương'",
-        "link": "https://cafef.vn/dbqh-de-xuat-giam-thue-thu-nhap-nang-muc-giam-tru-voi-nguoi-lam-cong-an-luong-188260821203735378.chn",
-        "summary": "ĐBQH Lê Thị Thanh Lam đề xuất xem xét giảm thuế thu nhập cá nhân hoặc nâng mức giảm trừ gia cảnh với người làm công ăn lương có thu nhập chịu thuế ở bậc thấp.",
-        "published": "2026-08-22T00:41:00Z",
-        "source": "CafeF - Vi mo"
       },
       {
         "title": "Loạt cổ phiếu bị khối ngoại bán ròng mạnh trước thời điểm công bố thông tin quan trọng về nâng hạng",
@@ -4980,44 +4994,16 @@
         "summary": "Ba cổ phiếu ngân hàng được xếp vào nhóm vốn hóa lớn và vừa.",
         "published": "2026-08-21T17:07:00Z",
         "source": "CafeF - Chung khoan"
-      },
-      {
-        "title": "Phát hiện: Một phần ba người Anh tiếc nuối vì bỏ lỡ \"cơn sóng\" vàng tăng 128%",
-        "link": "https://cafef.vn/phat-hien-mot-phan-ba-nguoi-anh-tiec-nuoi-vi-bo-lo-con-song-vang-tang-128-188260821235347247.chn",
-        "summary": "Dù vậy, tâm lý tiếc nuối chưa đồng nghĩa với việc nhà đầu tư sẵn sàng phân bổ vốn vào kim loại quý. Chỉ 25% người Anh cho biết có khả năng đưa tiền tiết kiệm vào vàng hoặc bạc trong 5 năm tới.",
-        "published": "2026-08-21T17:06:00Z",
-        "source": "CafeF - Chung khoan"
-      },
-      {
-        "title": "Điện Máy Xanh chốt danh sách nhận cổ tức tiền mặt ngay sau niêm yết",
-        "link": "https://cafef.vn/dien-may-xanh-chot-danh-sach-nhan-co-tuc-tien-mat-ngay-sau-niem-yet-188260821232127531.chn",
-        "summary": "Ngay sau khi chào sàn HoSE, Công ty Cổ phần Đầu tư Điện Máy Xanh đã nhanh chóng hoàn tất chốt danh sách cổ đông nhận đợt cổ tức tiền mặt đầu tiên vào ngày 19/08.",
-        "published": "2026-08-21T17:03:00Z",
-        "source": "CafeF - Chung khoan"
-      },
-      {
-        "title": "Đúng 1 tháng nữa, Việt Nam sẽ chính thức sánh ngang Trung Quốc, Ấn Độ",
-        "link": "https://cafef.vn/dung-1-thang-nua-viet-nam-se-chinh-thuc-sanh-ngang-trung-quoc-an-do-18826082123155854.chn",
-        "summary": "Nâng hạng lên thị trường mới nổi thứ cấp của FTSE Russell sẽ chính thức đưa Việt Nam sánh ngang cùng Trung Quốc, Ấn Độ, Ai Cập, Indonesia,…",
-        "published": "2026-08-21T17:01:00Z",
-        "source": "CafeF - Chung khoan"
-      },
-      {
-        "title": "'Nên giảm thuế cho doanh nghiệp có doanh thu trên 10 tỷ đồng'",
-        "link": "https://vnexpress.net/nen-giam-thue-cho-doanh-nghiep-co-doanh-thu-tren-10-ty-dong-5111868.html",
-        "summary": "PGS. TS Trần Hoàng Ngân đề nghị giảm thuế cho doanh nghiệp có doanh thu trên 10 tỷ đồng để tiếp sức các công ty, thúc đẩy tăng trưởng kinh tế.",
-        "published": "2026-08-21T13:00:00Z",
-        "source": "VnExpress - Kinh doanh"
-      },
-      {
-        "title": "Việt Nam có 27 cổ phiếu vào rổ chỉ số mới nổi của FTSE",
-        "link": "https://vnexpress.net/viet-nam-co-27-co-phieu-vao-ro-chi-so-moi-noi-cua-ftse-5111871.html",
-        "summary": "FTSE Russell thêm 27 cổ phiếu Việt Nam vào FTSE All-Cap, trong đó có 6 mã thuộc nhóm vốn hóa lớn và vừa, gồm VCB, VIC, VHM, BID, HPG và VPB.",
-        "published": "2026-08-21T12:22:59Z",
-        "source": "VnExpress - Kinh doanh"
       }
     ],
     "crypto": [
+      {
+        "title": "Bitcoin and Ether bears get decimated amid 'squeeze-led' rally and Musk's X wants to pay creators in stablecoins: Crypto week in 5 stories",
+        "link": "https://www.coindesk.com/business/2026/08/22/bitcoin-and-ether-bears-get-decimated-amid-squeeze-led-rally-and-musk-s-x-wants-to-pay-creators-in-stablecoins-crypto-week-in-5-stories",
+        "summary": "",
+        "published": "2026-08-22T12:00:00Z",
+        "source": "CoinDesk"
+      },
       {
         "title": "Zcash jumps 48% to over $800 as Grayscale spot ETF push adds to ‘next bitcoin’ buzz",
         "link": "https://www.coindesk.com/markets/2026/08/22/zcash-tops-usd800-for-first-time-since-2016",
@@ -5086,13 +5072,6 @@
         "link": "https://www.coindesk.com/markets/2026/08/21/bitcoin-tops-usd77-000-as-best-week-since-2023-pulls-altcoins-along-for-the-ride",
         "summary": "",
         "published": "2026-08-21T10:15:36Z",
-        "source": "CoinDesk"
-      },
-      {
-        "title": "Treasury's latest measure isn't QE or YCC. Still, bitcoin is skyrocketing. Here's why.",
-        "link": "https://www.coindesk.com/markets/2026/08/21/treasury-s-latest-measure-isn-t-qe-or-ycc-still-bitcoin-is-skyrocketing-here-s-why",
-        "summary": "",
-        "published": "2026-08-21T09:17:15Z",
         "source": "CoinDesk"
       }
     ]
