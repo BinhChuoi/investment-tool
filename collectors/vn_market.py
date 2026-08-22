@@ -1,25 +1,25 @@
 # -*- coding: utf-8 -*-
 """
-Thu thap du lieu thi truong VN qua vnstock:
-- VN-Index, VN30-Index (gia + xu huong)
-- VN30: 30 co phieu kem so sanh lich su gia (52 tuan) + dinh gia P/E, P/B, ROE, ROA
-- Watchlist tuy chon (gia + thay doi)
+Collect Vietnamese market data via vnstock:
+- VN-Index, VN30-Index (price + trend)
+- VN30: 30 stocks with 52-week price history + valuation (P/E, P/B, ROE, ROA)
+- Optional custom watchlist (price + change)
 
-Chi so co ban (P/E, P/B, ROE, ROA) lay tu VCI ratio_summary (TTM, cap nhat theo quy)
-va duoc cache o tang tren (DB) de khong phai tai lai moi lan.
+Fundamentals (P/E, P/B, ROE, ROA) come from VCI ratio_summary (TTM, quarterly)
+and are cached by the caller (DB) to avoid refetching every run.
 """
 import warnings
 warnings.filterwarnings("ignore")
 import io
 import time
 import contextlib
+from collections import deque
 from datetime import datetime, timedelta
 
-# --- Rate limiter: vnstock ban Guest gioi han ~20 request/phut ---
-# Bo dem cua so truot: dam bao <= _LIMIT request trong bat ky cua so 60s nao.
-# Moi thao tac khai bao 'cost' = so request ngam no tieu ton
-# (lich su gia = 1; ratio_summary ~ 2).
-from collections import deque
+# --- Rate limiter: vnstock Guest tier is limited to ~20 requests/minute ---
+# Sliding window: ensure <= _LIMIT requests in any 60s window. Each operation
+# declares a 'cost' = how many underlying requests it uses
+# (price history = 1; ratio_summary ~ 2).
 _LIMIT = 18
 _WINDOW = 60.0
 _reqs = deque()
@@ -38,7 +38,8 @@ def _gate(cost=1):
     for _ in range(cost):
         _reqs.append(now)
 
-# Danh sach VN30 du phong (neu goi API nhom that bai)
+
+# Fallback VN30 list (used if the group API call fails)
 VN30_FALLBACK = ["ACB", "BID", "BSR", "CTG", "FPT", "GAS", "GVR", "HDB", "HPG", "LPB",
                  "MBB", "MCH", "MSN", "MWG", "SAB", "SHB", "SSB", "SSI", "STB", "TCB",
                  "TCX", "VCB", "VHM", "VIB", "VIC", "VJC", "VNM", "VPB", "VPL", "VRE"]
@@ -86,18 +87,18 @@ def _pct(a, b):
 
 
 def _price_and_history(s, sym):
-    """Gia hien tai + ngan han (tuan/thang) + so sanh lich su gia 52 tuan."""
+    """Current price + short-term (week/month) + 52-week price history comparison."""
     df = _history(s, sym, days=380)
     closes = df["close"].tolist()
     last, prev = closes[-1], closes[-2]
     hi, lo = max(closes), min(closes)
     first = closes[0]
-    pos = (last - lo) / (hi - lo) * 100 if hi > lo else None  # vi tri trong dai 52T (%)
+    pos = (last - lo) / (hi - lo) * 100 if hi > lo else None  # position in 52w range (%)
 
     def ago(n):
         return closes[-1 - n] if len(closes) > n else None
-    w = ago(5)   # ~1 tuan giao dich
-    m = ago(21)  # ~1 thang giao dich
+    w = ago(5)   # ~1 trading week
+    m = ago(21)  # ~1 trading month
     return {
         "close": round(last, 2),
         "change_pct": _pct(last, prev),
@@ -127,7 +128,7 @@ def _stats(series):
 
 
 def fetch_fundamentals(v, sym):
-    """Lay P/E, P/B, ROE, ROA moi nhat + chuoi lich su P/E, P/B (TTM ~8 nam)."""
+    """Latest P/E, P/B, ROE, ROA + historical P/E, P/B series (TTM, ~8 years)."""
     _gate(2)
     with contextlib.redirect_stdout(io.StringIO()):
         rs = v.stock(symbol=sym, source="VCI").company.ratio_summary()
@@ -173,9 +174,9 @@ def get_vn30_list(v):
 
 def collect(watchlist, fund_cache=None, fund_max_age_days=5, fund_is_fresh=None):
     """
-    fund_cache: dict {symbol: {pe,pb,roe,roa,period,updated_at}} tu DB (de cache).
-    fund_is_fresh: ham(row, max_age_days)->bool (truyen tu store de kiem tra do moi).
-    Tra ve them 'fundamentals_fetched' = {sym: data} de tang tren luu vao DB.
+    fund_cache: dict {symbol: {pe,pb,roe,roa,period,updated_at,...}} from DB (for caching).
+    fund_is_fresh: fn(row, max_age_days)->bool (injected from store to check freshness).
+    Also returns 'fundamentals_fetched' = {sym: data} for the caller to persist to DB.
     """
     fund_cache = fund_cache or {}
     out = {"error": None, "index": {}, "vn30_index": {}, "watchlist": [],
@@ -205,10 +206,10 @@ def collect(watchlist, fund_cache=None, fund_max_age_days=5, fund_is_fresh=None)
             row.update(_price_and_history(s, sym))
         except Exception as e:
             row["error"] = f"price: {e}"
-        # fundamentals: dung cache neu con moi, khong thi tai moi
+        # fundamentals: use cache if fresh, otherwise refetch
         cached = fund_cache.get(sym)
         fresh = (fund_is_fresh(cached, fund_max_age_days) if fund_is_fresh else False)
-        # coi la cu neu thieu chuoi lich su (de bo sung series cho ban ghi cache cu)
+        # treat as stale if the historical series is missing (backfill old cache rows)
         if fresh and not (cached and cached.get("pe_series")):
             fresh = False
         if fresh:
@@ -221,13 +222,13 @@ def collect(watchlist, fund_cache=None, fund_max_age_days=5, fund_is_fresh=None)
                 row.update(f)
                 out["fundamentals_fetched"][sym] = f
             except Exception:
-                # tai loi -> dung cache cu neu co
+                # on fetch error -> fall back to old cache if available
                 if cached:
                     for k in ("pe", "pb", "roe", "roa", "period"):
                         row[k] = cached.get(k)
         out["vn30"].append(row)
 
-    # Watchlist tuy chon (gia + thay doi)
+    # Optional custom watchlist (price + change)
     for sym in (watchlist or []):
         try:
             df = _history(s, sym, days=30)

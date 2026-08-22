@@ -32,11 +32,11 @@ jobs:
       - name: Cai thu vien
         run: pip install -r requirements.txt
 
-      - name: Thu thap du lieu + dung bao cao
+      - name: Collect data + build report (advance weekly "seen" mark)
         env:
           PYTHONIOENCODING: utf-8
           PYTHONUTF8: "1"
-        run: python run.py
+        run: python run.py --seen
 
       - name: Luu DB da cap nhat nguoc vao repo
         run: |

@@ -1,19 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-update.py - Thu thap toan bo du lieu + tin tuc -> luu briefing pack (JSON).
+update.py - Collect all data + news -> save briefing pack (JSON) + DB.
 
-Chay:  python update.py
+Run:  python update.py
 
-Sau khi chay xong, se co file data/briefing_YYYY-MM-DD.json va data/briefing_latest.json.
-Roi nhan Claude Code "cap nhat bao cao" de phan tich va dung report.html.
+Produces data/briefing_YYYY-MM-DD.json and data/briefing_latest.json, and updates
+the SQLite DB. Then ask Claude Code "cap nhat bao cao" to analyze + build report.html.
 """
 import sys
-import io
 import os
 import json
 from datetime import datetime
 
-# Bao dam in tieng Viet / emoji khong loi tren Windows console
+# Ensure Vietnamese / emoji print without errors on Windows console
 try:
     sys.stdout.reconfigure(encoding="utf-8")
 except Exception:
@@ -35,14 +34,14 @@ def log(msg):
 def main():
     os.makedirs(DATA_DIR, exist_ok=True)
     now = datetime.now()
-    log(f"=== Thu thap du lieu luc {now:%Y-%m-%d %H:%M} ===")
+    log(f"=== Collecting data at {now:%Y-%m-%d %H:%M} ===")
 
     pack = {
         "generated_at": now.isoformat(),
         "date": now.strftime("%Y-%m-%d"),
     }
 
-    log("[1/4] Thi truong VN + VN30 (vnstock)...")
+    log("[1/4] VN market + VN30 (vnstock)...")
     fund_cache = store.get_fundamentals_cache()
     pack["vn"] = vn_market.collect(
         config.VN_WATCHLIST,
@@ -59,10 +58,10 @@ def main():
     fetched = pack["vn"].get("fundamentals_fetched", {})
     for sym, data in fetched.items():
         store.save_fundamentals(sym, data)
-    log(f"      VN30: {len(pack['vn'].get('vn30', []))} ma "
-        f"({len(fetched)} ma tai moi chi so co ban, con lai dung cache)")
+    log(f"      VN30: {len(pack['vn'].get('vn30', []))} symbols "
+        f"({len(fetched)} refetched fundamentals, rest from cache)")
     if pack["vn"].get("error"):
-        log(f"      ! Luu y VN: {pack['vn'].get('error')}")
+        log(f"      ! VN note: {pack['vn'].get('error')}")
 
     log("[2/4] Crypto (CoinGecko + Fear&Greed)...")
     pack["crypto"] = crypto.collect(config.CRYPTO_WATCHLIST)
@@ -70,7 +69,7 @@ def main():
     if fng:
         log(f"      Fear & Greed = {fng.get('value')} ({fng.get('label')})")
 
-    log("[3/4] Vi mo toan cau (Yahoo Finance)...")
+    log("[3/4] Global macro (Yahoo Finance)...")
     pack["macro"] = macro.collect(config.MACRO_TICKERS)
     items = pack["macro"].get("items", {})
     for k in ("DXY", "US10Y", "VIX", "Gold"):
@@ -78,41 +77,41 @@ def main():
         if it.get("last") is not None:
             log(f"      {k:6} = {it['last']} ({it.get('change_1d_pct')}%/1d)")
 
-    log("[4/4] Tin tuc (RSS, loc tin lien quan)...")
+    log("[4/4] News (RSS, relevance-filtered)...")
     kw = config.NEWS_RELEVANCE_KEYWORDS if getattr(config, "NEWS_FILTER_ENABLED", False) else None
     pack["news"] = news.collect(config.NEWS_FEEDS, config.NEWS_PER_FEED, relevance_keywords=kw)
     for topic, items in pack["news"].items():
-        log(f"      {topic:14}: {len(items)} tin")
+        log(f"      {topic:14}: {len(items)} items")
 
-    # Luu file JSON
+    # Save JSON files
     dated = os.path.join(DATA_DIR, f"briefing_{pack['date']}.json")
     latest = os.path.join(DATA_DIR, "briefing_latest.json")
     for path in (dated, latest):
         with open(path, "w", encoding="utf-8") as f:
             json.dump(pack, f, ensure_ascii=False, indent=2)
 
-    # Luu vao DB (tin + snapshot so lieu)
+    # Save to DB (news + market snapshot)
     log("")
-    log("[DB] Luu tin & snapshot vao SQLite...")
+    log("[DB] Saving news & snapshot to SQLite...")
     conn = store.connect()
     try:
         new_count = store.upsert_news(pack["news"], conn=conn)
         pruned = 0
-        if kw:  # don tin nhieu cu con sot trong DB
+        if kw:  # clean out old noise still stored in the DB
             pruned = store.prune_news(lambda r: news.is_relevant(r, kw), conn=conn)
         store.save_snapshot(pack, conn=conn)
         last_viewed = store.get_last_viewed(conn=conn)
     finally:
         conn.close()
-    log(f"      +{new_count} tin moi luu vao DB, don {pruned} tin nhieu cu")
-    log(f"      Xem lan cuoi (last_viewed): {last_viewed[:16].replace('T',' ')}")
+    log(f"      +{new_count} new items saved, pruned {pruned} old noise items")
+    log(f"      last_viewed: {last_viewed[:16].replace('T',' ')}")
 
     log("")
     log(f"OK -> {dated}")
     log(f"OK -> {latest}")
     log(f"OK -> {store.DB_PATH}")
     log("")
-    log(">> Buoc tiep: nhan Claude Code 'cap nhat bao cao' de phan tich + dung report.html")
+    log(">> Next: ask Claude Code 'cap nhat bao cao' to analyze + build report.html")
 
 
 if __name__ == "__main__":

@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-"""Thu thap chi so vi mo toan cau qua Yahoo Finance (yfinance)."""
+"""Collect global macro indicators via Yahoo Finance (yfinance)."""
 import warnings
 warnings.filterwarnings("ignore")
 
 
 def collect(tickers):
-    """tickers: dict {ten: (symbol, mo_ta)}"""
+    """tickers: dict {name: (symbol, description)}"""
     import yfinance as yf
     out = {"error": None, "items": {}}
     try:
@@ -26,7 +26,7 @@ def collect(tickers):
                     "change_1d": round(last - prev, 2),
                     "change_1d_pct": round((last - prev) / prev * 100, 2) if prev else None,
                     "change_1mo_pct": round((last - first) / first * 100, 2) if first else None,
-                    # chuoi ~30 phien de ve sparkline
+                    # ~30 sessions for a sparkline
                     "spark": [round(float(x), 2) for x in closes.tail(30).tolist()],
                 }
             except Exception as e:

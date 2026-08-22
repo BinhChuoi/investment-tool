@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-render.py - Dung report.html tu briefing_latest.json + assessment.json + DB
+render.py - Build report.html from briefing_latest.json + assessment.json + DB.
 
-Chay:
-  python render.py           # dung bao cao (KHONG doi moc da xem - an toan chay lai)
-  python render.py --seen    # dung xong + danh dau 'da xem den hien tai' (dung khi xem xong tuan)
+Run:
+  python render.py           # build report (does NOT advance the watermark - safe to rerun)
+  python render.py --seen    # build, then mark everything seen (use at end of week)
 
-Nguon:
-- briefing_latest.json : so lieu tho (bat buoc, tao boi update.py)
-- assessment.json      : phan tich cua Claude (tuy chon)
-- data/investment.db   : lich su tin + moc 'xem lan cuoi' + snapshot de so sanh tuan
+Sources:
+- briefing_latest.json : raw data (required, produced by update.py)
+- assessment.json      : Claude's analysis (optional)
+- data/investment.db   : news history + 'last_viewed' watermark + snapshots
 """
 import sys
 import os
@@ -19,6 +19,8 @@ import statistics
 from datetime import datetime
 
 import store
+import config
+from collectors import news
 
 try:
     sys.stdout.reconfigure(encoding="utf-8")
@@ -72,7 +74,7 @@ def sparkline(vals, w=120, h=32):
 
 
 def _year_ticks(labels):
-    """Tu labels ('2018Q1' hoac '2014-09') -> [(index, 'nam')] tai lan dau moi nam."""
+    """From labels ('2018Q1' or '2014-09') -> [(index, 'year')] at the first of each year."""
     out = []
     seen = set()
     for i, lb in enumerate(labels or []):
@@ -86,8 +88,8 @@ def _year_ticks(labels):
 
 def multichart(series, labels, w=600, h=220, unit="", baseline=None,
                baseline_label="", y_is_ratio=False):
-    """Bieu do duong chi tiet: nhieu duong + luoi + nhan truc Y + moc NAM truc X + cham diem.
-    series: list dict {values, color, label}. Truc Y chung."""
+    """Detailed line chart: multiple lines + grid + Y-axis labels + YEAR ticks + dots.
+    series: list of dict {values, color, label}. Shared Y-axis."""
     allv = []
     for s in series:
         allv += [v for v in s["values"] if v is not None]
@@ -115,7 +117,7 @@ def multichart(series, labels, w=600, h=220, unit="", baseline=None,
 
     p = [f'<svg class="lc" viewBox="0 0 {w} {h}" width="100%" height="{h}" '
          f'xmlns="http://www.w3.org/2000/svg" font-family="sans-serif">']
-    # luoi ngang + nhan truc Y (4 muc)
+    # horizontal grid + Y-axis labels (5 levels)
     for k in range(5):
         val = hi - rng * k / 4
         y = Y(val)
@@ -123,14 +125,14 @@ def multichart(series, labels, w=600, h=220, unit="", baseline=None,
                  f'stroke="var(--line)" stroke-width="1"/>')
         p.append(f'<text x="{padL-5}" y="{y+3:.1f}" font-size="10" fill="#9aa3b2" '
                  f'text-anchor="end">{yfmt(val)}</text>')
-    # moc nam truc X
+    # year ticks on the X-axis
     for i, yr in _year_ticks(labels):
         x = X(i)
         p.append(f'<line x1="{x:.1f}" y1="{padT}" x2="{x:.1f}" y2="{h-padB}" '
                  f'stroke="var(--line)" stroke-width="1" stroke-dasharray="2 3" opacity="0.6"/>')
         p.append(f'<text x="{x:.1f}" y="{h-6}" font-size="10" fill="#9aa3b2" '
                  f'text-anchor="middle">{esc(yr)}</text>')
-    # duong mocbaseline (vd TB = 1.0)
+    # baseline line (e.g. average = 1.0)
     if baseline is not None:
         yb = Y(baseline)
         p.append(f'<line x1="{padL}" y1="{yb:.1f}" x2="{w-padR}" y2="{yb:.1f}" '
@@ -138,7 +140,7 @@ def multichart(series, labels, w=600, h=220, unit="", baseline=None,
         if baseline_label:
             p.append(f'<text x="{w-padR-2}" y="{yb-4:.1f}" font-size="10" fill="#f59e0b" '
                      f'text-anchor="end">{esc(baseline_label)}</text>')
-    # cac duong
+    # the lines
     for s in series:
         pts = [(i, v) for i, v in enumerate(s["values"]) if v is not None]
         if len(pts) < 2:
@@ -150,7 +152,7 @@ def multichart(series, labels, w=600, h=220, unit="", baseline=None,
         li, lv = pts[-1]
         p.append(f'<circle cx="{X(li):.1f}" cy="{Y(lv):.1f}" r="3.2" fill="{s["color"]}"/>')
     p.append("</svg>")
-    # chu thich (legend)
+    # legend
     leg = " &nbsp; ".join(
         f'<span class="lgd"><span class="dot2" style="background:{s["color"]}"></span>{esc(s["label"])}</span>'
         for s in series)
@@ -160,10 +162,10 @@ def multichart(series, labels, w=600, h=220, unit="", baseline=None,
 
 
 def vs_avg_badge(vs_pct, cheap_is_low=True):
-    """Nhan rẻ/đắt so voi trung binh lich su."""
+    """Badge: cheap/expensive vs historical average."""
     if vs_pct is None:
         return ""
-    # cheap_is_low: chi so cang thap cang re (P/E, P/B). vs_pct<0 = duoi TB = re
+    # cheap_is_low: lower ratio = cheaper (P/E, P/B). vs_pct < 0 = below avg = cheap
     cheap = (vs_pct < 0) if cheap_is_low else (vs_pct > 0)
     cls = "up" if cheap else "down"
     txt = "dưới TB" if vs_pct < 0 else ("trên TB" if vs_pct > 0 else "= TB")
@@ -239,7 +241,7 @@ def _stock_card(r):
     yrs = _years_of(periods)
     yrs_txt = f"~{yrs:.0f} năm".replace(".0", "") if yrs else ""
 
-    # dong tom tat (grid)
+    # summary row (grid)
     summary = f"""
       <div class="vcell sym">{esc(sym)}</div>
       <div class="vcell r">{fmt_num(r.get('close'))}</div>
@@ -250,7 +252,7 @@ def _stock_card(r):
       <div class="vcell mini">{sparkline(r.get('pe_series'), w=90, h=26)}</div>
     """
 
-    # than: 1 bieu do GOP P/E & P/B chuan hoa theo trung binh (moc 1.0 = TB)
+    # body: one COMBINED P/E & P/B chart normalized to their averages (1.0 = avg)
     pe_avg, pb_avg = pe_st.get("avg"), pb_st.get("avg")
     pe_series, pb_series = r.get("pe_series") or [], r.get("pb_series") or []
     pe_ratio = [round(v / pe_avg, 3) if (v is not None and pe_avg) else None for v in pe_series]
@@ -283,12 +285,12 @@ def _stock_card(r):
 
 
 def vn30_aggregate(rows):
-    """Chi so chung cho ca ro VN30: trung vi P/E, P/B, ROE + do rong re/dat."""
+    """Aggregate metrics for the whole VN30 basket: median P/E, P/B, ROE + cheap/expensive breadth."""
     def med(key):
         vals = [r.get(key) for r in rows if r.get(key) is not None]
         return round(statistics.median(vals), 2) if vals else None
     pe_med, pb_med, roe_med = med("pe"), med("pb"), med("roe")
-    # do rong: bao nhieu ma dang duoi P/E trung binh lich su cua chinh no
+    # breadth: how many stocks are below their own historical average P/E
     with_stats = [r for r in rows if (r.get("pe_stats") or {}).get("vs_avg_pct") is not None]
     below = [r for r in with_stats if r["pe_stats"]["vs_avg_pct"] < 0]
     disc = [r["pe_stats"]["vs_avg_pct"] for r in with_stats]
@@ -488,7 +490,7 @@ def render_assessment(a):
     </div>"""
 
 
-# ---------------- Week-over-week (Delta tuan) ----------------
+# ---------------- Week-over-week ----------------
 
 def _get(d, *path, default=None):
     for k in path:
@@ -520,7 +522,7 @@ def _delta_row(label, now, prev, unit="", d=2):
 
 
 def _spark_week_ago(brief, *path):
-    """Lay gia tri ~5 phien giao dich truoc tu mang spark (du lieu lich su that)."""
+    """Get the value ~5 trading sessions ago from the spark array (real history)."""
     node = _get(brief, *path)
     spark = node.get("spark") if isinstance(node, dict) else None
     if spark and len(spark) >= 6:
@@ -529,14 +531,14 @@ def _spark_week_ago(brief, *path):
 
 
 def _prev_from_brief(brief):
-    """Uoc luong so lieu ~1 tuan truoc tu du lieu lich su co san trong brief.
-    Dung khi chua co snapshot that tu tuan truoc trong DB (tuan dau chay tool)."""
+    """Estimate values ~1 week ago from the historical data already in the brief.
+    Used when there is no real week-old snapshot in the DB yet (first run)."""
     p = {"vn": {"index": {}}, "crypto": {"coins": [], "fear_greed": {}},
          "macro": {"items": {}}}
     p["vn"] = {"index": {}, "vn30_index": {}}
     p["vn"]["index"]["close"] = _spark_week_ago(brief, "vn", "index")
     p["vn"]["vn30_index"]["close"] = _spark_week_ago(brief, "vn", "vn30_index")
-    # BTC: suy tu change_7d
+    # BTC: derive from change_7d
     btc = _get(brief, "crypto", "coins", "bitcoin")
     if btc and btc.get("price") is not None and btc.get("change_7d") is not None:
         p["crypto"]["coins"].append(
@@ -549,13 +551,13 @@ def _prev_from_brief(brief):
 
 
 def render_wow(brief, prev):
-    """So sanh tuan nay vs snapshot ~7 ngay truoc."""
+    """Compare this week vs the snapshot ~7 days ago."""
     estimated = False
     if prev and prev.get("date") and prev["date"] != brief.get("date"):
         p = prev["payload"]
         pdate = prev["date"]
     else:
-        # Chua co snapshot that tu tuan truoc -> uoc luong tu lich su that
+        # No real week-old snapshot yet -> estimate from real history
         p = _prev_from_brief(brief)
         pdate = None
         estimated = True
@@ -592,28 +594,47 @@ def render_wow(brief, prev):
     <div class="sub" style="margin-top:6px">({note})</div>"""
 
 
-# ---------------- News (tu DB, nhom Moi / Da xem) ----------------
+# ---------------- News (from DB, ranked & capped) ----------------
 
 TOPIC_NAMES = {"global_macro": "Vĩ mô toàn cầu", "vn": "Chứng khoán VN", "crypto": "Crypto"}
 
 
+def _importance(it):
+    """Importance score: number of 'important' keywords present."""
+    text = (it.get("title", "") + " " + (it.get("summary") or "")).lower()
+    return sum(1 for kw in config.NEWS_IMPORTANT_KEYWORDS if kw in text)
+
+
 def _news_li(it):
     pub = (it.get("published") or it.get("first_seen") or "")[:16].replace("T", " ")
-    # data-ts = first_seen (luc tin VAO FEED) -> dung phia trinh duyet de chia moi/da doc
-    fs = it.get("first_seen") or it.get("published") or ""
     link = it.get("link")
     title = esc(it.get("title", ""))
     if link:
         title = (f'<a href="{esc(link)}" target="_blank" rel="noopener" '
                  f'class="newslink">{title}</a>')
     summ = f'<div class="nsum">{esc(it.get("summary",""))}</div>' if it.get("summary") else ""
-    return (f'<li class="newsitem" data-ts="{esc(fs)}" data-topic="{esc(it.get("topic",""))}">'
-            f'<div class="ntitle">{title}</div>'
+    hot = (' <span class="hot" title="Được nhiều nguồn cùng đưa">&#128293;</span>'
+           if it.get("hot", 0) >= 4 else "")
+    # is_new is decided SERVER-side (consistent across devices) -> baked into the class
+    cls = "newsitem is-new" if it.get("is_new") else "newsitem is-read"
+    return (f'<li class="{cls}">'
+            f'<div class="ntitle">{title}{hot}</div>'
             f'<div class="nmeta">{esc(it.get("source",""))} &middot; {esc(pub)}</div>'
             f'{summ}</li>')
 
 
-def _group_by_topic(items):
+def _rank_key(it):
+    """Ranking: new first -> hotter (more sources) -> more important -> more recent."""
+    return (
+        1 if it.get("is_new") else 0,
+        it.get("hot", 0),
+        _importance(it),
+        it.get("published") or it.get("first_seen") or "",
+    )
+
+
+def _group_by_topic(items, max_per_topic):
+    """Group by topic; within each topic rank by _rank_key and cap to max_per_topic."""
     blocks = ""
     by_topic = {}
     for it in items:
@@ -622,30 +643,35 @@ def _group_by_topic(items):
         lst = by_topic.get(topic)
         if not lst:
             continue
-        rows = "".join(_news_li(it) for it in lst)
-        blocks += (f'<details class="newsblock" data-topic="{topic}" open>'
+        lst.sort(key=_rank_key, reverse=True)
+        shown = lst[:max_per_topic]
+        n_new = sum(1 for it in shown if it.get("is_new"))
+        rows = "".join(_news_li(it) for it in shown)
+        cnt = (f'<span class="nbnew">{n_new} mới</span> / {len(shown)}' if n_new
+               else f'{len(shown)}')
+        blocks += (f'<details class="newsblock" open>'
                    f'<summary><span class="nbtitle">{esc(TOPIC_NAMES.get(topic, topic))}</span> '
-                   f'<span class="nbcount" data-total="{len(lst)}">({len(lst)})</span></summary>'
+                   f'<span class="nbcount">({cnt})</span></summary>'
                    f'<ul class="newslist">{rows}</ul></details>')
     return blocks
 
 
 def render_news(news_rows):
-    # Xuat TAT CA tin (nhom theo chu de). Viec chia 'moi / da doc' do TRINH DUYET
-    # lam qua localStorage -> chay duoc ca tren dien thoai, khong can server.
-    blocks = _group_by_topic(news_rows)
+    # 'New / read' is decided SERVER-side (via last_viewed, advanced weekly at build time)
+    # -> consistent across ALL devices. Cap + rank by hotness/importance.
+    news.annotate_hotness(news_rows)   # cross-source "hotness" (covered by many sources)
+    n_new = sum(1 for n in news_rows if n.get("is_new"))
+    blocks = _group_by_topic(news_rows, config.NEWS_MAX_PER_TOPIC)
     return f"""
     <div class="newstools">
-      <span class="newcounter" id="newcounter">🆕 …</span>
-      <button class="btn" onclick="markAllRead()">✓ Đã đọc hết &amp; lưu mốc</button>
-      <label class="switch"><input type="checkbox" id="onlynew" onchange="applyRead()">
+      <span class="newcounter">🆕 {n_new} tin mới tuần này</span>
+      <label class="switch"><input type="checkbox" id="onlynew" onchange="toggleOnlyNew()">
         <span>Chỉ hiện tin mới</span></label>
-      <button class="btn ghost" onclick="clearRead()">Bỏ mốc</button>
-      <span class="readinfo" id="readinfo"></span>
     </div>
     {blocks}
-    <div class="sub" style="margin-top:8px">Bấm <b>“Đã đọc hết & lưu mốc”</b> khi xem xong — trình duyệt sẽ
-      nhớ mốc này (kể cả trên điện thoại). Lần sau chỉ tin <b>mới về sau mốc đó</b> hiện nhãn 🆕.</div>"""
+    <div class="sub" style="margin-top:8px">Nhãn 🆕 = tin mới trong tuần này (giống nhau trên mọi thiết bị) ·
+      🔥 = được nhiều nguồn cùng đưa (đang nóng). Mỗi chủ đề hiện tối đa {config.NEWS_MAX_PER_TOPIC} tin,
+      ưu tiên: mới → nóng → quan trọng → mới nhất. Chủ nhật tới tự làm mới.</div>"""
 
 
 # ---------------- Page ----------------
@@ -748,6 +774,8 @@ table.vn30 tbody tr:hover{background:rgba(127,127,127,.06);}
 .newsblock{margin-bottom:8px;}
 .newsblock>summary{cursor:pointer;font-weight:600;padding:6px 0;}
 .nbcount{color:var(--muted);font-weight:400;font-size:12.5px;}
+.nbnew{color:var(--accent);font-weight:700;}
+.hot{font-size:12px;}
 .newsitem{padding:9px 4px 9px 12px;border-bottom:1px solid var(--line);position:relative;transition:opacity .15s;}
 .newsitem.is-new{border-left:3px solid var(--accent);background:rgba(79,70,229,.045);border-radius:0 6px 6px 0;}
 .newsitem.is-new .ntitle::before{content:"MỚI";background:var(--accent);color:#fff;font-size:9px;
@@ -755,67 +783,32 @@ table.vn30 tbody tr:hover{background:rgba(127,127,127,.06);}
 .newsitem.is-read{opacity:.5;}
 """
 
-# ---------------- JS: theo doi 'da doc' phia client (localStorage) ----------------
-# Bam vao 1 tin -> tin do va cu hon tu mo di (da doc). Ben trong trinh duyet.
+# ---------------- Client-side JS ----------------
+# 'new/read' is decided SERVER-side (baked into HTML). JS only handles the "only new" toggle.
 
 JS = """
 <script>
 (function(){
-  var KEY='inv_read_until';
-  // Moc mac dinh khi trinh duyet chua luu gi (lay tu last_viewed cua DB)
-  var DEFAULT_RU = (window.__lastViewed || '');
-  var memRU = null; // fallback khi localStorage bi chan (vd file data:)
-  function lsGet(){ try{ return localStorage.getItem(KEY); }catch(e){ return null; } }
-  function lsSet(v){ try{ localStorage.setItem(KEY, v); }catch(e){} }
-  function lsDel(){ try{ localStorage.removeItem(KEY); }catch(e){} }
-  function saved(){ var v=lsGet(); return (v!=null)?v:memRU; }
-  function get(){ var v=saved(); return (v!=null && v!=='')?v:DEFAULT_RU; }
-  function set(ts){ memRU=ts; lsSet(ts); applyRead(); }
-
-  window.applyRead=function(){
-    var ru=get();
-    var onlynew=document.getElementById('onlynew');
-    var showOnlyNew = onlynew && onlynew.checked;
-    var newCount=0;
+  window.toggleOnlyNew=function(){
+    var el=document.getElementById('onlynew');
+    var only = el && el.checked;
     document.querySelectorAll('.newsitem').forEach(function(li){
-      var ts=li.getAttribute('data-ts')||'';
-      var isNew = ts && (!ru || ts>ru);
-      li.classList.toggle('is-new', !!isNew);
-      li.classList.toggle('is-read', !isNew);
-      li.style.display = (showOnlyNew && !isNew) ? 'none' : '';
-      if(isNew) newCount++;
+      var isNew = li.classList.contains('is-new');
+      li.style.display = (only && !isNew) ? 'none' : '';
     });
-    // cap nhat so 'moi' cho tung chu de + an block rong khi 'chi hien moi'
     document.querySelectorAll('.newsblock').forEach(function(b){
-      var items=b.querySelectorAll('.newsitem');
-      var nnew=0; items.forEach(function(li){ if(li.classList.contains('is-new')) nnew++; });
-      var cnt=b.querySelector('.nbcount');
-      if(cnt){ var tot=cnt.getAttribute('data-total'); cnt.textContent='('+(nnew>0?(nnew+' mới / '):'')+tot+')'; }
-      b.style.display = (showOnlyNew && nnew===0) ? 'none' : '';
+      var hasNew = b.querySelector('.newsitem.is-new');
+      b.style.display = (only && !hasNew) ? 'none' : '';
     });
-    var c=document.getElementById('newcounter');
-    if(c) c.textContent = '🆕 ' + newCount + ' tin mới';
-    var info=document.getElementById('readinfo');
-    if(info){ var r=saved(); info.textContent = r ? ('Đã lưu mốc: '+r.slice(0,16).replace('T',' ')) : ''; }
   };
-  // Bam vao link tin -> danh dau tin do (va cu hon) la da doc
-  document.addEventListener('click',function(e){
-    var a=e.target.closest('.newslink'); if(!a) return;
-    var ts=a.closest('.newsitem').getAttribute('data-ts')||'';
-    if(ts && ts>get()) set(ts);
-  });
-  window.markAllRead=function(){ set(new Date().toISOString()); };
-  window.clearRead=function(){ memRU=null; lsDel(); applyRead(); };
-  document.addEventListener('DOMContentLoaded', window.applyRead);
-  window.applyRead();
 })();
 </script>
 """
 
 
 def page_content(brief, assess, news_rows, watermark, prev_snapshot):
-    """Noi dung trang (style + noi dung + script), KHONG co doctype/html/head/body.
-    Dung chung cho ban standalone (report.html) va ban Artifact (body-only)."""
+    """Page content (style + body + script), WITHOUT doctype/html/head/body.
+    Shared by the standalone report.html and the Artifact (body-only) build."""
     gen = brief.get("generated_at", "")[:16].replace("T", " ")
     return f"""<style>{CSS}</style>
 <div class="wrap">
@@ -851,12 +844,11 @@ def page_content(brief, assess, news_rows, watermark, prev_snapshot):
     Tạo bởi tool theo dõi đầu tư &middot; Claude Code
   </div>
 </div>
-<script>window.__lastViewed = {json.dumps(watermark)};</script>
 {JS}"""
 
 
 def build(brief, assess, news_rows, watermark, prev_snapshot):
-    """Ban standalone: mo truc tiep report.html bang trinh duyet."""
+    """Standalone build: open report.html directly in a browser."""
     date = brief.get("date", "")
     body = page_content(brief, assess, news_rows, watermark, prev_snapshot)
     return (f'<!doctype html><html lang="vi"><head><meta charset="utf-8">'
@@ -869,7 +861,7 @@ def main():
 
     brief_path = os.path.join(DATA_DIR, "briefing_latest.json")
     if not os.path.exists(brief_path):
-        print("! Chua co briefing_latest.json. Chay 'python update.py' truoc.")
+        print("! No briefing_latest.json yet. Run 'python update.py' first.")
         sys.exit(1)
     with open(brief_path, encoding="utf-8") as f:
         brief = json.load(f)
@@ -880,7 +872,7 @@ def main():
         with open(assess_path, encoding="utf-8") as f:
             assess = json.load(f)
 
-    # DB: tin (kem is_new), moc xem cuoi, snapshot tuan truoc
+    # DB: news (with is_new), last_viewed watermark, previous-week snapshot
     conn = store.connect()
     try:
         store.init_db(conn)
@@ -890,14 +882,14 @@ def main():
         with open(out, "w", encoding="utf-8") as f:
             f.write(build(brief, assess, news_rows, watermark, prev_snapshot))
         print(f"OK -> {out}")
-        # Ban body-only de dang len Artifact (xem tren dien thoai)
+        # body-only build for publishing as an Artifact (mobile viewing)
         art = os.path.join(BASE, "report_artifact.html")
         with open(art, "w", encoding="utf-8") as f:
             f.write(page_content(brief, assess, news_rows, watermark, prev_snapshot))
-        print(f"OK -> {art} (de dang Artifact xem tren dt)")
+        print(f"OK -> {art} (body-only, for publishing as an Artifact)")
         if do_seen:
             ts = store.mark_seen(conn=conn)
-            print(f"   Da danh dau xem den: {ts[:16].replace('T',' ')} (--seen)")
+            print(f"   Marked seen up to: {ts[:16].replace('T',' ')} (--seen)")
     finally:
         conn.close()
 

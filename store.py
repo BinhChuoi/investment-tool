@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-store.py - Lop luu tru SQLite cho tool dau tu.
+store.py - SQLite storage layer for the investment tool.
 
-- Bang news      : luu toan bo tin theo thoi gian (khu trung lap theo link)
-- Bang snapshots : luu so lieu moi lan chay (de so sanh tuan-tren-tuan)
-- Bang meta      : luu moc 'last_viewed' (xem lan cuoi) va cac cai dat khac
+- news       : all news over time (deduplicated by link)
+- snapshots  : market data per run (for week-over-week comparison)
+- meta       : the 'last_viewed' watermark and other settings
+- fundamentals: per-symbol P/E, P/B, ROE, ROA + historical series (cached)
 """
 import os
 import json
@@ -65,7 +66,7 @@ def init_db(conn=None):
         updated_at TEXT
     );
     """)
-    # Migration: them cot luu chuoi lich su P/E, P/B (JSON) neu chua co
+    # Migration: add columns for P/E, P/B historical series (JSON) if missing
     cols = {r[1] for r in conn.execute("PRAGMA table_info(fundamentals)").fetchall()}
     for col in ("pe_series", "pb_series", "periods", "pe_stats", "pb_stats"):
         if col not in cols:
@@ -81,7 +82,7 @@ def _news_id(item):
 
 
 def upsert_news(news_by_topic, conn=None):
-    """Chen tin moi vao DB; tin da co (theo id) thi bo qua. Tra ve so tin moi."""
+    """Insert new items; skip existing ones (by id). Return the count of new items."""
     close = conn is None
     conn = conn or connect()
     init_db(conn)
@@ -108,8 +109,8 @@ def upsert_news(news_by_topic, conn=None):
 
 
 def prune_news(keep_predicate, conn=None):
-    """Xoa cac tin KHONG thoa keep_predicate(row) khoi DB. Tra ve so tin da xoa.
-    Dung de don tin nhieu cu da luu truoc khi bat bo loc."""
+    """Delete news NOT matching keep_predicate(row). Return count deleted.
+    Used to clean out previously-stored noise after enabling the filter."""
     close = conn is None
     conn = conn or connect()
     init_db(conn)
@@ -124,7 +125,7 @@ def prune_news(keep_predicate, conn=None):
 
 
 def save_snapshot(brief, conn=None):
-    """Luu so lieu thi truong (vn/crypto/macro) theo ngay de so sanh WoW."""
+    """Save market data (vn/crypto/macro) by date for week-over-week comparison."""
     close = conn is None
     conn = conn or connect()
     init_db(conn)
@@ -138,17 +139,17 @@ def save_snapshot(brief, conn=None):
 
 
 def get_snapshot_near(days_ago=7, conn=None):
-    """Lay snapshot gan nhat cach day khoang `days_ago` ngay (de so sanh tuan)."""
+    """Return the snapshot closest to `days_ago` days ago (for weekly comparison)."""
     close = conn is None
     conn = conn or connect()
     init_db(conn)
     target = (datetime.utcnow() - timedelta(days=days_ago)).strftime("%Y-%m-%d")
-    # snapshot co date <= target, moi nhat trong so do
+    # latest snapshot with date <= target
     row = conn.execute(
         "SELECT * FROM snapshots WHERE date<=? ORDER BY date DESC LIMIT 1", (target,)
     ).fetchone()
     if row is None:
-        # neu chua co du lich su, lay snapshot cu nhat khac hom nay
+        # not enough history yet -> use the oldest snapshot available
         row = conn.execute(
             "SELECT * FROM snapshots ORDER BY date ASC LIMIT 1").fetchone()
     result = None
@@ -182,7 +183,7 @@ def set_meta(key, value, conn=None):
 
 
 def get_last_viewed(conn=None):
-    """Moc xem lan cuoi. Lan dau mac dinh = 7 ngay truoc (hien tin ca tuan qua)."""
+    """The 'last viewed' watermark. Defaults to 7 days ago on first use."""
     v = get_meta("last_viewed", None, conn=conn)
     if v is None:
         v = (datetime.utcnow() - timedelta(days=7)).isoformat() + "Z"
@@ -190,7 +191,7 @@ def get_last_viewed(conn=None):
 
 
 def mark_seen(conn=None):
-    """Danh dau da xem den hien tai."""
+    """Mark everything as seen up to now (advance the watermark)."""
     ts = _now_iso()
     set_meta("last_viewed", ts, conn=conn)
     return ts
@@ -200,7 +201,7 @@ _FUND_JSON = ("pe_series", "pb_series", "periods", "pe_stats", "pb_stats")
 
 
 def get_fundamentals_cache(conn=None):
-    """Tra ve dict {symbol: {pe,pb,roe,roa,period,updated_at, + chuoi lich su}} tu DB."""
+    """Return {symbol: {pe,pb,roe,roa,period,updated_at, + historical series}} from DB."""
     close = conn is None
     conn = conn or connect()
     init_db(conn)
@@ -240,7 +241,7 @@ def save_fundamentals(symbol, data, conn=None):
 
 
 def fundamentals_is_fresh(row, max_age_days=5):
-    """True neu ban ghi fundamentals con moi (chua qua max_age_days)."""
+    """True if the fundamentals record is still fresh (younger than max_age_days)."""
     if not row or not row.get("updated_at"):
         return False
     try:
@@ -251,7 +252,7 @@ def fundamentals_is_fresh(row, max_age_days=5):
 
 
 def get_news(topic=None, conn=None):
-    """Lay tin trong DB (moi nhat truoc). Kem co 'is_new' theo last_viewed."""
+    """Return news from DB (newest first), each flagged 'is_new' vs last_viewed."""
     close = conn is None
     conn = conn or connect()
     init_db(conn)
@@ -266,8 +267,8 @@ def get_news(topic=None, conn=None):
     out = []
     for r in rows:
         d = dict(r)
-        # 'Moi' = tin VAO FEED sau lan xem cuoi (dua vao first_seen, khong phai published)
-        # -> xu ly dung ca tinh huong fetch nhieu lan trong cung ngay.
+        # 'new' = entered the feed after last_viewed (use first_seen, not published)
+        # -> correct even when fetching multiple times in the same day.
         stamp = d.get("first_seen") or d.get("published") or ""
         d["is_new"] = stamp > watermark
         out.append(d)
@@ -278,5 +279,5 @@ def get_news(topic=None, conn=None):
 
 if __name__ == "__main__":
     init_db()
-    print("DB san sang tai", DB_PATH)
+    print("DB ready at", DB_PATH)
     print("last_viewed =", get_last_viewed())

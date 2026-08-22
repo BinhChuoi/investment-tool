@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Thu thap du lieu Crypto: CoinGecko (gia, market cap, dominance) + Fear & Greed."""
+"""Collect crypto data: CoinGecko (prices, market cap, dominance) + Fear & Greed."""
 import requests
 
 CG = "https://api.coingecko.com/api/v3"
@@ -14,7 +14,7 @@ def _get(url, params=None):
 
 
 def longterm(coin_to_ticker):
-    """Gia dai han BTC/ETH: chuoi thang + trung binh toan ky + MA200 (Mayer Multiple)."""
+    """Long-term price for BTC/ETH: monthly series + all-time average + MA200 (Mayer Multiple)."""
     import warnings
     warnings.filterwarnings("ignore")
     import yfinance as yf
@@ -45,7 +45,7 @@ def longterm(coin_to_ticker):
 
 def collect(watchlist):
     out = {"error": None, "global": {}, "coins": [], "fear_greed": {}, "longterm": {}}
-    # Tong quan thi truong
+    # Market overview
     try:
         g = _get(f"{CG}/global")["data"]
         out["global"] = {
@@ -58,7 +58,7 @@ def collect(watchlist):
     except Exception as e:
         out["error"] = f"global: {e}"
 
-    # Gia cac coin trong watchlist
+    # Watchlist coin prices
     try:
         data = _get(f"{CG}/coins/markets", {
             "vs_currency": "usd",
@@ -80,7 +80,7 @@ def collect(watchlist):
     except Exception as e:
         out["error"] = (out["error"] or "") + f" | coins: {e}"
 
-    # Dinh gia dai han (gia vs trung binh nhieu nam) qua yfinance
+    # Long-term valuation (price vs multi-year average) via yfinance
     try:
         out["longterm"] = longterm({"bitcoin": "BTC-USD", "ethereum": "ETH-USD"})
     except Exception as e:

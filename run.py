@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-run.py - Chay TAT CA trong 1 lenh: thu thap du lieu + dung bao cao.
+run.py - Do everything in one command: collect data + build report.
 
-  python run.py            # update (thu thap) + render (dung report.html)
-  python run.py --no-fetch # chi dung lai bao cao tu du lieu da co (nhanh)
-  python run.py --seen     # dung xong danh dau da xem (mai cho ban CLI, tuy chon)
+  python run.py            # update (collect) + render (build report.html)
+  python run.py --no-fetch # only rebuild the report from existing data (fast)
+  python run.py --seen     # after building, mark everything as seen (weekly)
 
-Sau do:
-  - Mo report.html tren may, HOAC
-  - Nhan Claude Code "cap nhat bao cao" de minh phan tich lai + dang len dien thoai.
+Then:
+  - Open report.html locally, OR
+  - Ask Claude Code "cap nhat bao cao" to re-analyze + publish to phone.
 """
 import sys
 import runpy
@@ -19,25 +19,25 @@ sys.path.insert(0, BASE)
 
 
 def _run(module):
-    """Chay 1 module nhu script (giu nguyen __main__ cua no)."""
+    """Run a module as a script (preserving its __main__)."""
     runpy.run_module(module, run_name="__main__")
 
 
 def main():
     args = sys.argv[1:]
     if "--no-fetch" not in args:
-        print(">>> [1/2] Thu thap du lieu (update.py)...\n")
+        print(">>> [1/2] Collecting data (update.py)...\n")
         _run("update")
         print()
     else:
-        print(">>> Bo qua thu thap (--no-fetch)\n")
+        print(">>> Skipping collection (--no-fetch)\n")
 
-    print(">>> [2/2] Dung bao cao (render.py)...\n")
-    # chuyen tiep co --seen cho render neu co
+    print(">>> [2/2] Building report (render.py)...\n")
+    # forward --seen to render if present
     sys.argv = ["render.py"] + (["--seen"] if "--seen" in args else [])
     _run("render")
 
-    print("\n>>> XONG. Mo report.html, hoac nhan Claude Code 'cap nhat bao cao'.")
+    print("\n>>> DONE. Open report.html, or ask Claude Code 'cap nhat bao cao'.")
 
 
 if __name__ == "__main__":
