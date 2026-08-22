@@ -86,19 +86,36 @@ def _pct(a, b):
     return round((a - b) / b * 100, 2) if b else None
 
 
+def _ma(series, w):
+    """Simple moving average (None until enough points)."""
+    out = []
+    for i in range(len(series)):
+        out.append(round(sum(series[i - w + 1: i + 1]) / w, 2) if i + 1 >= w else None)
+    return out
+
+
 def _price_and_history(s, sym):
-    """Current price + short-term (week/month) + 52-week price history comparison."""
-    df = _history(s, sym, days=380)
+    """Current price + short-term + 52-week range + price/MA200 series for charting."""
+    # ~600 calendar days (~400 sessions) so MA200 is valid across the shown window
+    df = _history(s, sym, days=600)
     closes = df["close"].tolist()
     last, prev = closes[-1], closes[-2]
-    hi, lo = max(closes), min(closes)
-    first = closes[0]
+    ma200_full = _ma(closes, 200)
+
+    N = 252                       # ~52 trading weeks shown
+    window = closes[-N:] if len(closes) > N else closes
+    hi, lo = max(window), min(window)
+    first = window[0]
     pos = (last - lo) / (hi - lo) * 100 if hi > lo else None  # position in 52w range (%)
 
     def ago(n):
         return closes[-1 - n] if len(closes) > n else None
     w = ago(5)   # ~1 trading week
     m = ago(21)  # ~1 trading month
+
+    step = 2      # downsample to ~every 2 sessions to keep JSON small
+    px = [round(x, 2) for x in window[::step]]
+    ma = [ma200_full[-len(window):][i] for i in range(0, len(window), step)]
     return {
         "close": round(last, 2),
         "change_pct": _pct(last, prev),
@@ -109,6 +126,9 @@ def _price_and_history(s, sym):
         "w52_pos": round(pos, 0) if pos is not None else None,
         "ret_1y": _pct(last, first),
         "volume": int(df["volume"].iloc[-1]),
+        "ma200": ma200_full[-1],
+        "px_series": px,          # downsampled price (last ~52 weeks)
+        "ma200_series": ma,       # MA200 aligned to px_series
     }
 
 

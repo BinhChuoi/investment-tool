@@ -65,6 +65,13 @@ def init_db(conn=None):
         roa        REAL,
         updated_at TEXT
     );
+
+    CREATE TABLE IF NOT EXISTS weekly_reports (
+        week         TEXT PRIMARY KEY,   -- ISO week key, e.g. 2026-W34
+        label        TEXT,               -- human label, e.g. "Tuần 22/08/2026"
+        generated_at TEXT,
+        payload      TEXT                -- JSON: summary numbers, WoW, news, assessment
+    );
     """)
     # Migration: add columns for P/E, P/B historical series (JSON) if missing
     cols = {r[1] for r in conn.execute("PRAGMA table_info(fundamentals)").fetchall()}
@@ -249,6 +256,54 @@ def fundamentals_is_fresh(row, max_age_days=5):
         return (datetime.utcnow() - ts) < timedelta(days=max_age_days)
     except Exception:
         return False
+
+
+def save_weekly_report(week, label, payload, conn=None):
+    """Save (or overwrite) one week's report snapshot."""
+    close = conn is None
+    conn = conn or connect()
+    init_db(conn)
+    conn.execute(
+        "INSERT OR REPLACE INTO weekly_reports (week,label,generated_at,payload) VALUES (?,?,?,?)",
+        (week, label, _now_iso(), json.dumps(payload, ensure_ascii=False)))
+    conn.commit()
+    if close:
+        conn.close()
+
+
+def get_weekly_reports(limit=12, conn=None):
+    """Return the most recent weekly reports (newest first) as list of dicts."""
+    close = conn is None
+    conn = conn or connect()
+    init_db(conn)
+    rows = conn.execute(
+        "SELECT * FROM weekly_reports ORDER BY week DESC LIMIT ?", (limit,)).fetchall()
+    out = []
+    for r in rows:
+        d = dict(r)
+        try:
+            d["payload"] = json.loads(d["payload"])
+        except Exception:
+            d["payload"] = {}
+        out.append(d)
+    if close:
+        conn.close()
+    return out
+
+
+def get_news_since(days=7, conn=None):
+    """News whose first_seen is within the last `days` days (this week's news)."""
+    close = conn is None
+    conn = conn or connect()
+    init_db(conn)
+    cutoff = (datetime.utcnow() - timedelta(days=days)).isoformat() + "Z"
+    rows = conn.execute(
+        "SELECT * FROM news WHERE COALESCE(first_seen, published) >= ? "
+        "ORDER BY COALESCE(published, first_seen) DESC", (cutoff,)).fetchall()
+    out = [dict(r) for r in rows]
+    if close:
+        conn.close()
+    return out
 
 
 def get_news(topic=None, conn=None):

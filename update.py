@@ -22,6 +22,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import config
 import store
+import weekly
 from collectors import vn_market, crypto, macro, news
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
@@ -105,6 +106,20 @@ def main():
         conn.close()
     log(f"      +{new_count} new items saved, pruned {pruned} old noise items")
     log(f"      last_viewed: {last_viewed[:16].replace('T',' ')}")
+
+    # Build & save this week's report snapshot (aggregate + rule-based assessment)
+    log("[DB] Building weekly report...")
+    conn = store.connect()
+    try:
+        prev_snapshot = store.get_snapshot_near(days_ago=7, conn=conn)
+        news_week = store.get_news_since(days=7, conn=conn)
+        payload = weekly.build_payload(pack, prev_snapshot, news_week)
+        wk = now.strftime("%G-W%V")
+        label = f"Tuần {now:%d/%m/%Y}"
+        store.save_weekly_report(wk, label, payload, conn=conn)
+    finally:
+        conn.close()
+    log(f"      Weekly report saved: {wk} ({label}) — {payload['assessment']['headline']}")
 
     log("")
     log(f"OK -> {dated}")

@@ -249,6 +249,26 @@ def _rolling_mean(series, window=12):
     return out
 
 
+def stock_price_chart(cid, px, ma):
+    """VN stock price (in VND) with its MA200 line."""
+    px_vnd = [round(x * 1000) if _finite(x) else None for x in (px or [])]
+    ma_vnd = [round(x * 1000) if _finite(x) else None for x in (ma or [])]
+    cfg = {
+        "type": "line",
+        "data": {"labels": [""] * len(px_vnd), "datasets": [
+            _ds("Giá", px_vnd, "#4f46e5", "y", fill=True),
+            _ds("MA200", ma_vnd, "#f59e0b", "y", dash=True),
+        ]},
+        "options": {
+            "responsive": True, "maintainAspectRatio": False,
+            "interaction": {"mode": "index", "intersect": False},
+            "plugins": {"legend": {"labels": {"boxWidth": 12, "font": {"size": 11}}}},
+            "scales": {"x": {"display": False}, "y": {"ticks": {"font": {"size": 10}}}},
+        },
+    }
+    return chart_canvas(cid, cfg, height=200)
+
+
 def price_chart(cid, labels, series, avg, log=True):
     """Long-term price line (log scale) with a moving average that follows the trend."""
     ma = _rolling_mean(series, 12)
@@ -361,14 +381,31 @@ def _stock_card(r):
                 f'TB {yrs_txt} <b>{fmt_num(st.get("avg"))}</b> {vs_avg_badge(st.get("vs_avg_pct"), cheap)} · '
                 f'thấp {fmt_num(st.get("min"))} · cao {fmt_num(st.get("max"))}</div>')
 
+    # price + MA200 chart (if we have the series)
+    price_block = ""
+    if r.get("px_series"):
+        ma_now = r.get("ma200")
+        vs_ma = ""
+        if _finite(ma_now) and _finite(r.get("close")) and ma_now:
+            d = (r["close"] - ma_now) / ma_now * 100
+            cls = "up" if d >= 0 else "down"
+            vs_ma = f' · giá <span class="{cls}">{"trên" if d>=0 else "dưới"} MA200 {abs(d):.1f}%</span>'
+        price_block = (f'<div class="chartbox"><div class="charttitle">Giá &amp; MA200 (~52 tuần){vs_ma}</div>'
+                       f'{stock_price_chart(f"px_{esc(sym)}", r.get("px_series"), r.get("ma200_series"))}</div>')
+
+    fin_link = (f'<a href="https://finance.vietstock.vn/{esc(sym)}/tai-chinh.htm" '
+                f'target="_blank" rel="noopener">&#128196; Báo cáo tài chính ({esc(sym)}) &#8599;</a>')
+
     body = f"""
       <div class="carddetail">
         {stat_line("P/E", pe, pe_st)}
         {stat_line("P/B", pb, pb_st)}
         <div class="chartbox"><div class="charttitle">P/E (trục trái) &amp; P/B (trục phải) theo quý ({yrs_txt})</div>{combo}</div>
+        {price_block}
         <div class="statline muted">ROE {fmt_num(r.get('roe'))}% · giá 52 tuần:
-          {fmt_num(r.get('w52_low'))} – {fmt_num(r.get('w52_high'))} (hiện ở {fmt_num(r.get('w52_pos'))}% dải) ·
+          {fmt_vnd(r.get('w52_low'))} – {fmt_vnd(r.get('w52_high'))} (hiện ở {fmt_num(r.get('w52_pos'))}% dải) ·
           Δ 1 năm {r.get('ret_1y')}%</div>
+        <div class="statline">{fin_link}</div>
       </div>
     """
     return (f'<details class="vcard"><summary><div class="vsummary">{summary}'
@@ -849,6 +886,87 @@ def render_news(news_rows):
       <b>máy này</b> (localStorage, an toàn) để làm mờ tin đã đọc giữa tuần. Chủ nhật tới tự làm mới.</div>"""
 
 
+# ---------------- Weekly report (from DB snapshot) ----------------
+
+def _wk_metric(m):
+    v = m.get("cur")
+    if not _finite(v):
+        return "-"
+    return f"{fmt_num(v, m.get('d', 2))}{m.get('unit', '')}"
+
+
+def _wk_delta(m):
+    p = m.get("delta_pct")
+    if not _finite(p):
+        return '<span class="muted">-</span>'
+    cls = "up" if p > 0 else ("down" if p < 0 else "flat")
+    sign = "+" if p > 0 else ""
+    return f'<span class="{cls}">{sign}{p:.1f}%</span>'
+
+
+def render_weekly_report(rep):
+    p = rep.get("payload", {})
+    a = p.get("assessment", {})
+    summary = p.get("summary", [])
+    news = p.get("news", {})
+    prev_date = p.get("prev_date")
+
+    market = "".join(f"<li>{esc(x)}</li>" for x in a.get("market", []))
+    warns = "".join(f"<li>{esc(x)}</li>" for x in a.get("warnings", []))
+    warn_box = (f'<div class="box risk"><h4>&#9888; Cảnh báo</h4><ul>{warns}</ul></div>'
+                if warns else "")
+    hot = ""
+    for h in a.get("tophot", []):
+        link = h.get("link")
+        t = esc(h.get("title", ""))
+        t = f'<a href="{esc(link)}" target="_blank" rel="noopener">{t}</a>' if link else t
+        hot += f'<li>&#128293; {t} <span class="ev-src">{esc(h.get("source",""))}</span></li>'
+    hot_box = f'<div class="box"><h4>&#128293; Tin nóng nhất tuần</h4><ul>{hot}</ul></div>' if hot else ""
+
+    rows = "".join(
+        f'<tr><td>{esc(m["label"])}</td><td class="r">{_wk_metric(m)}</td>'
+        f'<td class="r">{_wk_delta(m)}</td></tr>' for m in summary)
+    vn30 = p.get("vn30", {})
+    vn30_line = ""
+    if vn30.get("pe"):
+        vn30_line = (f'<div class="statline">Định giá chung VN30 ({vn30.get("n")} mã): '
+                     f'P/E trung vị <b>{fmt_num(vn30.get("pe"))}</b> · '
+                     f'P/B <b>{fmt_num(vn30.get("pb"))}</b> · '
+                     f'ROE <b>{fmt_num(vn30.get("roe"))}%</b></div>')
+
+    news_blocks = ""
+    for topic in ("global_macro", "vn", "crypto"):
+        lst = news.get(topic) or []
+        if not lst:
+            continue
+        items = ""
+        for it in lst:
+            pub = (it.get("published") or "")[:16].replace("T", " ")
+            link = it.get("link")
+            t = esc(it.get("title", ""))
+            t = f'<a href="{esc(link)}" target="_blank" rel="noopener" class="newslink">{t}</a>' if link else t
+            flame = ' &#128293;' if it.get("hot", 0) >= 4 else ""
+            items += (f'<li class="newsitem"><div class="ntitle">{t}{flame}</div>'
+                      f'<div class="nmeta">{esc(it.get("source",""))} &middot; {esc(pub)}</div></li>')
+        news_blocks += (f'<details class="newsblock" open><summary>{esc(TOPIC_NAMES.get(topic, topic))} '
+                        f'({len(lst)})</summary><ul class="newslist">{items}</ul></details>')
+
+    return f"""
+    <div class="overall"><h2>{esc(a.get('headline','Báo cáo tuần'))}</h2>
+      <div class="sub">Tuần đến {esc(p.get('date',''))}"""  \
+        + (f" · so với {esc(prev_date)}" if prev_date else " · Δ ước lượng từ lịch sử") + f"""</div>
+      <ul class="points">{market}</ul>
+    </div>
+    {vn30_line}
+    <div class="boxes">{warn_box}{hot_box}</div>
+    <h3 style="margin:16px 0 6px">📊 Số liệu &amp; Δ tuần</h3>
+    <div class="card"><table class="wow"><thead><tr><th>Chỉ số</th>
+      <th class="r">Cuối tuần</th><th class="r">Δ tuần</th></tr></thead>
+      <tbody>{rows}</tbody></table></div>
+    <h3 style="margin:16px 0 6px">📰 Tin quan trọng trong tuần</h3>
+    <div class="card">{news_blocks or '<p class="muted">Không có tin.</p>'}</div>"""
+
+
 # ---------------- Page ----------------
 
 CSS = """
@@ -870,6 +988,28 @@ h2{font-size:18px;margin:22px 0 10px;} h3{font-size:15px;margin:0;} h4{margin:0 
 .tabbadge{display:inline-block;min-width:16px;padding:0 5px;margin-left:5px;border-radius:999px;
   background:#dc2626;color:#fff;font-size:10.5px;font-weight:700;line-height:16px;text-align:center;}
 .tabpanel{display:none;} .tabpanel.active{display:block;}
+/* --- App layout: left sidebar + content --- */
+.wrap-wide{max-width:1180px;}
+.applayout{display:flex;gap:16px;align-items:flex-start;}
+.sidebar{flex:0 0 210px;position:sticky;top:8px;max-height:calc(100vh - 20px);overflow-y:auto;
+  border:1px solid var(--line);border-radius:12px;padding:10px;background:var(--card);}
+.side-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.03em;margin:10px 4px 6px;}
+.navitem{display:flex;align-items:center;gap:8px;width:100%;text-align:left;background:transparent;
+  border:none;color:var(--txt);border-radius:8px;padding:8px 10px;font-size:13.5px;cursor:pointer;}
+.navitem:hover{background:rgba(127,127,127,.08);}
+.navitem.active{background:var(--accent);color:#fff;font-weight:600;}
+.navdot{width:8px;height:8px;border-radius:50%;background:#dc2626;flex:0 0 auto;visibility:hidden;}
+.navitem.unread .navdot{visibility:visible;}
+.navitem.active .navdot{visibility:hidden;}
+.content{flex:1 1 auto;min-width:0;}
+.navpanel{display:none;} .navpanel.active{display:block;}
+@media(max-width:760px){
+  .applayout{flex-direction:column;}
+  .sidebar{position:static;flex:none;width:100%;max-height:none;display:flex;flex-wrap:wrap;gap:4px;}
+  .side-title{width:100%;margin:6px 4px 2px;}
+  .navitem{width:auto;flex:0 0 auto;border:1px solid var(--line);}
+}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px;}
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
 @media(max-width:820px){.grid3{grid-template-columns:1fr;}}
@@ -1003,62 +1143,31 @@ JS = """
   function initIn(root){ (root||document).querySelectorAll('canvas.jschart').forEach(function(cv){
     if(cv.offsetParent !== null) initChart(cv);   // only when actually visible
   }); }
+  document.addEventListener('toggle', function(e){
+    var d=e.target; if(d.tagName==='DETAILS' && d.open) initIn(d);
+  }, true);
 
-  // ---- Tabs ----
-  window.showTab=function(id){
-    document.querySelectorAll('.tab').forEach(function(t){ t.classList.toggle('active', t.dataset.tab===id); });
-    document.querySelectorAll('.tabpanel').forEach(function(p){ p.classList.toggle('active', p.id==='tab-'+id); });
-    var panel=document.getElementById('tab-'+id);
-    if(panel) initIn(panel);
+  // ---- Weekly "read" tracking (localStorage set of read weeks; safe on public pages) ----
+  var WKEY='inv_read_weeks', memW=null;
+  function wGet(){ try{ var v=localStorage.getItem(WKEY); if(v!=null) return v; }catch(e){} return memW||''; }
+  function isRead(wk){ return wk && wGet().indexOf('|'+wk+'|')>=0; }
+  function wAdd(wk){ if(!wk || isRead(wk)) return;
+    var s=(wGet()||'|')+wk+'|'; memW=s; try{ localStorage.setItem(WKEY,s); }catch(e){} applyDots(); }
+  function applyDots(){ document.querySelectorAll('.navitem[data-week]').forEach(function(b){
+    b.classList.toggle('unread', !isRead(b.getAttribute('data-week'))); }); }
+
+  // ---- Sidebar navigation ----
+  window.showPanel=function(pid, week){
+    document.querySelectorAll('.navitem').forEach(function(b){ b.classList.toggle('active', b.getAttribute('data-panel')===pid); });
+    document.querySelectorAll('.navpanel').forEach(function(p){ p.classList.toggle('active', p.id===pid); });
+    var panel=document.getElementById(pid); if(panel) initIn(panel);
+    if(week) wAdd(week);
     if(window.scrollTo) window.scrollTo({top:0,behavior:'instant'});
   };
   document.addEventListener('click',function(e){
-    var t=e.target.closest('.tab'); if(t){ window.showTab(t.dataset.tab); }
+    var b=e.target.closest('.navitem'); if(!b) return;
+    window.showPanel(b.getAttribute('data-panel'), b.getAttribute('data-week'));
   });
-
-  // ---- Init charts when a <details> opens ----
-  document.addEventListener('toggle', function(e){
-    var d=e.target;
-    if(d.tagName==='DETAILS' && d.open) initIn(d);
-  }, true);
-
-  // ---- News: personal "read" mark (localStorage only, safe on public pages) ----
-  var RKEY='inv_read_until', memR=null;
-  function rGet(){ try{ var v=localStorage.getItem(RKEY); return v!=null?v:memR; }catch(e){ return memR; } }
-  function rSet(v){ memR=v; try{ localStorage.setItem(RKEY,v); }catch(e){} applyLocalRead(); }
-  function rDel(){ memR=null; try{ localStorage.removeItem(RKEY); }catch(e){} applyLocalRead(); }
-  window.applyLocalRead=function(){
-    var ru=rGet();
-    document.querySelectorAll('.newsitem').forEach(function(li){
-      var ts=li.getAttribute('data-ts')||'';
-      li.classList.toggle('read-local', !!(ru && ts && ts<=ru));
-    });
-    var info=document.getElementById('readinfo');
-    if(info) info.textContent = ru ? ('Đã đọc tới: '+ru.slice(0,16).replace('T',' ')) : '';
-    if(document.getElementById('onlynew')) window.toggleOnlyNew();
-  };
-  window.markReadLocal=function(){ rSet(new Date().toISOString()); };
-  window.clearReadLocal=function(){ rDel(); };
-  // click a headline also marks it (and older) read, on this device
-  document.addEventListener('click',function(e){
-    var a=e.target.closest('.newslink'); if(!a) return;
-    var ts=a.closest('.newsitem').getAttribute('data-ts')||'';
-    if(ts && ts>(rGet()||'')) rSet(ts);
-  });
-
-  // ---- News: only-new toggle (a read-local item counts as not-new) ----
-  window.toggleOnlyNew=function(){
-    var el=document.getElementById('onlynew');
-    var only = el && el.checked;
-    document.querySelectorAll('.newsitem').forEach(function(li){
-      var show = li.classList.contains('is-new') && !li.classList.contains('read-local');
-      li.style.display = (only && !show) ? 'none' : '';
-    });
-    document.querySelectorAll('.newsblock').forEach(function(b){
-      var any = b.querySelector('.newsitem.is-new:not(.read-local)');
-      b.style.display = (only && !any) ? 'none' : '';
-    });
-  };
 
   // ---- Sortable tables (click header th[data-key]) ----
   window.sortTable=function(th){
@@ -1087,33 +1196,55 @@ JS = """
     });
   };
 
-  document.addEventListener('DOMContentLoaded', function(){ initIn(document); applyLocalRead(); });
-  initIn(document); applyLocalRead();
+  function boot(){
+    initIn(document); applyDots();
+    var act=document.querySelector('.navitem.active[data-week]');   // latest week is being viewed
+    if(act) wAdd(act.getAttribute('data-week'));
+  }
+  document.addEventListener('DOMContentLoaded', boot); boot();
 })();
 </script>
 """
 
 
-def page_content(brief, assess, news_rows, watermark, prev_snapshot):
+def page_content(brief, weekly_reports):
     """Page content (style + body + script), WITHOUT doctype/html/head/body.
-    Shared by the standalone report.html and the Artifact (body-only) build."""
+    Layout: left sidebar picks a weekly report (default latest) + current detail views."""
     gen = brief.get("generated_at", "")[:16].replace("T", " ")
-    n_new = sum(1 for n in news_rows if n.get("is_new"))
-    news_badge = f'<span class="tabbadge">{n_new}</span>' if n_new else ""
-    tabs = [
-        ("overview", "Tổng quan", "&#128202;", ""),
-        ("vn30", "VN30", "&#127974;", ""),
-        ("crypto", "Crypto", "&#8383;", ""),
-        ("macro", "Vĩ mô", "&#127758;", ""),
-        ("news", "Tin tức", "&#128240;", news_badge),
-    ]
-    tabbar = "".join(
-        f'<button class="tab{" active" if i == 0 else ""}" data-tab="{tid}">'
-        f'{icon} {esc(label)}{badge}</button>'
-        for i, (tid, label, icon, badge) in enumerate(tabs))
+    vn = brief.get("vn", {})
+    crypto = brief.get("crypto", {})
+
+    side_weeks, panels = "", ""
+    for i, rep in enumerate(weekly_reports):
+        wk = rep.get("week", "")
+        label = rep.get("label") or wk
+        active = " active" if i == 0 else ""
+        side_weeks += (f'<button class="navitem{active}" data-panel="pnl-{esc(wk)}" data-week="{esc(wk)}">'
+                       f'<span class="navdot"></span>{esc(label)}</button>')
+        panels += f'<section class="navpanel{active}" id="pnl-{esc(wk)}">{render_weekly_report(rep)}</section>'
+
+    has_weeks = bool(weekly_reports)
+    da = "" if has_weeks else " active"   # if no weeks yet, activate the VN30 detail
+    side_weeks = side_weeks or '<div class="sub muted" style="padding:4px 8px">Chưa có báo cáo tuần.</div>'
+
+    panels += f"""
+      <section class="navpanel{da}" id="pnl-vn30">
+        <h2>&#127974; VN30 &middot; Định giá vs Lịch sử</h2>
+        <div class="card">{render_vn30(vn)}</div></section>
+      <section class="navpanel" id="pnl-crypto">
+        <h2>&#8383; Crypto &middot; Số liệu</h2><div class="card">{render_crypto(crypto)}</div>
+        <h2>&#8383; Crypto &middot; Định giá dài hạn</h2>
+        <div class="card">{render_crypto_valuation(crypto)}</div></section>
+      <section class="navpanel" id="pnl-macro">
+        <h2>&#127758; Vĩ mô toàn cầu</h2><div class="card">{render_macro(brief.get('macro',{}))}</div></section>"""
+
+    side_detail = (
+        f'<button class="navitem{da}" data-panel="pnl-vn30">&#127974; VN30 định giá</button>'
+        '<button class="navitem" data-panel="pnl-crypto">&#8383; Crypto định giá</button>'
+        '<button class="navitem" data-panel="pnl-macro">&#127758; Vĩ mô</button>')
 
     return f"""<style>{CSS}</style>
-<div class="wrap">
+<div class="wrap wrap-wide">
   <header>
     <h1>&#128202; Báo cáo Theo dõi Thị trường &amp; Đầu tư</h1>
     <div class="sub">Cập nhật: {esc(gen)} &middot; VN &middot; Crypto &middot; Vĩ mô toàn cầu</div>
@@ -1121,41 +1252,17 @@ def page_content(brief, assess, news_rows, watermark, prev_snapshot):
   <div class="disc">&#9888; Đây là công cụ <b>tổng hợp dữ liệu &amp; đánh giá tham khảo</b>, KHÔNG phải
     khuyến nghị mua/bán. Mọi quyết định đầu tư do bạn tự chịu trách nhiệm.</div>
 
-  <div class="tabbar">{tabbar}</div>
-
-  <section class="tabpanel active" id="tab-overview">
-    {render_assessment(assess)}
-    <h2>&#128197; So sánh tuần (Week-over-Week)</h2>
-    <div class="card">{render_wow(brief, prev_snapshot)}</div>
-    <h2>&#128200; Số liệu nhanh</h2>
-    <div class="grid3">
-      <div class="card"><h3>Vĩ mô toàn cầu</h3>{render_macro(brief.get('macro',{}))}</div>
-      <div class="card"><h3>Chứng khoán VN</h3>{render_vn(brief.get('vn',{}))}</div>
-      <div class="card"><h3>Crypto</h3>{render_crypto(brief.get('crypto',{}))}</div>
-    </div>
-  </section>
-
-  <section class="tabpanel" id="tab-vn30">
-    <h2>&#127974; VN30 &middot; Định giá vs Lịch sử</h2>
-    <div class="card">{render_vn30(brief.get('vn',{}))}</div>
-  </section>
-
-  <section class="tabpanel" id="tab-crypto">
-    <h2>&#8383; Crypto &middot; Số liệu</h2>
-    <div class="card">{render_crypto(brief.get('crypto',{}))}</div>
-    <h2>&#8383; Crypto &middot; Định giá dài hạn (BTC, ETH)</h2>
-    <div class="card">{render_crypto_valuation(brief.get('crypto',{}))}</div>
-  </section>
-
-  <section class="tabpanel" id="tab-macro">
-    <h2>&#127758; Vĩ mô toàn cầu</h2>
-    <div class="card">{render_macro(brief.get('macro',{}))}</div>
-  </section>
-
-  <section class="tabpanel" id="tab-news">
-    <h2>&#128240; Tin tức (bằng chứng)</h2>
-    <div class="card">{render_news(news_rows)}</div>
-  </section>
+  <div class="applayout">
+    <nav class="sidebar">
+      <div class="side-title">&#128197; Báo cáo tuần</div>
+      {side_weeks}
+      <div class="side-title">&#128200; Chi tiết (hiện tại)</div>
+      {side_detail}
+    </nav>
+    <main class="content">
+      {panels}
+    </main>
+  </div>
 
   <div class="sub" style="margin-top:20px;text-align:center;">
     Tạo bởi tool theo dõi đầu tư &middot; Claude Code
@@ -1165,10 +1272,10 @@ def page_content(brief, assess, news_rows, watermark, prev_snapshot):
 {JS}"""
 
 
-def build(brief, assess, news_rows, watermark, prev_snapshot):
+def build(brief, weekly_reports):
     """Standalone build: open report.html directly in a browser."""
     date = brief.get("date", "")
-    body = page_content(brief, assess, news_rows, watermark, prev_snapshot)
+    body = page_content(brief, weekly_reports)
     return (f'<!doctype html><html lang="vi"><head><meta charset="utf-8">'
             f'<meta name="viewport" content="width=device-width,initial-scale=1">'
             f'<title>Bao cao dau tu {esc(date)}</title></head><body>{body}</body></html>')
@@ -1184,26 +1291,19 @@ def main():
     with open(brief_path, encoding="utf-8") as f:
         brief = json.load(f)
 
-    assess = None
-    assess_path = os.path.join(DATA_DIR, "assessment.json")
-    if os.path.exists(assess_path):
-        with open(assess_path, encoding="utf-8") as f:
-            assess = json.load(f)
-
-    # DB: news (with is_new), last_viewed watermark, previous-week snapshot
+    # DB: weekly report snapshots (newest first)
     conn = store.connect()
     try:
         store.init_db(conn)
-        news_rows, watermark = store.get_news(conn=conn)
-        prev_snapshot = store.get_snapshot_near(days_ago=7, conn=conn)
+        weekly_reports = store.get_weekly_reports(limit=12, conn=conn)
         out = os.path.join(BASE, "report.html")
         with open(out, "w", encoding="utf-8") as f:
-            f.write(build(brief, assess, news_rows, watermark, prev_snapshot))
-        print(f"OK -> {out}")
+            f.write(build(brief, weekly_reports))
+        print(f"OK -> {out}  ({len(weekly_reports)} weekly reports)")
         # body-only build for publishing as an Artifact (mobile viewing)
         art = os.path.join(BASE, "report_artifact.html")
         with open(art, "w", encoding="utf-8") as f:
-            f.write(page_content(brief, assess, news_rows, watermark, prev_snapshot))
+            f.write(page_content(brief, weekly_reports))
         print(f"OK -> {art} (body-only, for publishing as an Artifact)")
         if do_seen:
             ts = store.mark_seen(conn=conn)
