@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-22T13:44:38.555265",
+  "generated_at": "2026-08-22T13:56:50.576310",
   "date": "2026-08-22",
   "vn": {
     "error": null,
@@ -1833,15 +1833,7 @@
       },
       {
         "symbol": "MWG",
-        "close": 75.0,
-        "change_pct": 3.16,
-        "change_1w": 3.59,
-        "change_1m": 6.52,
-        "w52_high": 92.27,
-        "w52_low": 62.33,
-        "w52_pos": 42.0,
-        "ret_1y": 10.38,
-        "volume": 4995900,
+        "error": "price: RetryError[<Future at 0x7f7f90f94690 state=finished raised ConnectionError>]",
         "pe": 11.25,
         "pb": 3.1,
         "roe": 29.2,
@@ -3790,15 +3782,7 @@
       },
       {
         "symbol": "VRE",
-        "close": 25.3,
-        "change_pct": 4.76,
-        "change_1w": 5.64,
-        "change_1m": 15.0,
-        "w52_high": 41.92,
-        "w52_low": 21.3,
-        "w52_pos": 19.0,
-        "ret_1y": -9.68,
-        "volume": 6035600,
+        "error": "price: RetryError[<Future at 0x7f7f90e34290 state=finished raised ConnectionError>]",
         "pe": 7.93,
         "pb": 1.17,
         "roe": 15.0,
@@ -3930,56 +3914,56 @@
   "crypto": {
     "error": null,
     "global": {
-      "total_market_cap_usd": 2627570114907.4263,
-      "total_volume_usd": 157840169309.87207,
-      "btc_dominance": 58.809130490063374,
-      "eth_dominance": 11.109714864484964,
-      "market_cap_change_24h": -1.63737085999961
+      "total_market_cap_usd": 2637771829521.7285,
+      "total_volume_usd": 157875003254.88052,
+      "btc_dominance": 58.79234026190305,
+      "eth_dominance": 11.11360602072073,
+      "market_cap_change_24h": -1.3701521477930956
     },
     "coins": [
       {
         "id": "bitcoin",
         "symbol": "BTC",
         "name": "Bitcoin",
-        "price": 77194,
-        "change_24h": 0.9,
-        "change_7d": 22.8,
-        "change_30d": 18.0,
-        "market_cap": 1549060200598,
-        "ath_change": -38.77355
+        "price": 77281,
+        "change_24h": 0.2,
+        "change_7d": 22.7,
+        "change_30d": 18.7,
+        "market_cap": 1551046490134,
+        "ath_change": -38.70468
       },
       {
         "id": "ethereum",
         "symbol": "ETH",
         "name": "Ethereum",
-        "price": 2427.21,
-        "change_24h": 2.6,
-        "change_7d": 29.4,
-        "change_30d": 26.1,
-        "market_cap": 292835860560,
-        "ath_change": -50.92616
+        "price": 2430.24,
+        "change_24h": 1.9,
+        "change_7d": 29.2,
+        "change_30d": 27.7,
+        "market_cap": 293236265272,
+        "ath_change": -50.86501
       },
       {
         "id": "binancecoin",
         "symbol": "BNB",
         "name": "BNB",
-        "price": 694.29,
-        "change_24h": 3.2,
-        "change_7d": 13.8,
-        "change_30d": 22.0,
-        "market_cap": 92410070017,
-        "ath_change": -49.32147
+        "price": 695.33,
+        "change_24h": 2.5,
+        "change_7d": 13.9,
+        "change_30d": 22.2,
+        "market_cap": 92564093120,
+        "ath_change": -49.24563
       },
       {
         "id": "solana",
         "symbol": "SOL",
         "name": "Solana",
-        "price": 93.89,
-        "change_24h": 4.2,
+        "price": 94.17,
+        "change_24h": 3.7,
         "change_7d": 24.9,
-        "change_30d": 21.0,
-        "market_cap": 54723772751,
-        "ath_change": -67.99042
+        "change_30d": 22.4,
+        "market_cap": 54898075613,
+        "ath_change": -67.89485
       }
     ],
     "fear_greed": {
@@ -4133,7 +4117,7 @@
           73579.69,
           58558.86,
           62813.75,
-          77225.5
+          77297.7
         ],
         "labels": [
           "2014-09",
@@ -4282,10 +4266,10 @@
           "2026-08"
         ],
         "start": "2014-09",
-        "current": 77225.5,
-        "avg_all": 29297.34,
-        "vs_avg_pct": 163.6,
-        "ma200": 68981.55,
+        "current": 77297.7,
+        "avg_all": 29297.84,
+        "vs_avg_pct": 163.8,
+        "ma200": 68981.91,
         "mayer": 1.12
       },
       "ethereum": {
@@ -4395,7 +4379,7 @@
           2004.34,
           1569.58,
           1860.35,
-          2426.89
+          2429.84
         ],
         "labels": [
           "2017-11",
@@ -4506,10 +4490,10 @@
           "2026-08"
         ],
         "start": "2017-11",
-        "current": 2426.61,
-        "avg_all": 1720.54,
-        "vs_avg_pct": 41.0,
-        "ma200": 2005.41,
+        "current": 2429.84,
+        "avg_all": 1720.56,
+        "vs_avg_pct": 41.2,
+        "ma200": 2005.43,
         "mayer": 1.21
       }
     }
@@ -4836,6 +4820,13 @@
     ],
     "vn": [
       {
+        "title": "Lý do chọn doanh thu dưới 10 tỷ để đề xuất giảm thuế 30%",
+        "link": "https://cafef.vn/ly-do-chon-doanh-thu-duoi-10-ty-de-de-xuat-giam-thue-30-188260822204908974.chn",
+        "summary": "Theo Bộ trưởng Tài chính Ngô Văn Tuấn, dự kiến ngưỡng quy định 10 tỷ đồng sẽ \"đảm bảo bao phủ và hỗ trợ được đại đa số các hộ kinh doanh và doanh nghiệp quy mô nhỏ, siêu nhỏ đang thực sự gặp khó khăn hiện nay\".",
+        "published": "2026-08-22T13:59:00Z",
+        "source": "CafeF - Vi mo"
+      },
+      {
         "title": "Đàm phán thương mại Mỹ - Canada đổ bể",
         "link": "https://vnexpress.net/dam-phan-thuong-mai-my-canada-do-be-5112231.html",
         "summary": "Do đàm phán đổ bể, Mỹ chính thức áp thuế lên 20 tỷ USD hàng hóa Canada từ 22/8, khiến Ottawa tuyên bố sẽ có biện pháp trả đũa.",
@@ -5013,6 +5004,13 @@
     ],
     "crypto": [
       {
+        "title": "Tokenized stocks risk repeating Wall Street’s 1960s ‘paper crisis,’ Fairmint CEO says",
+        "link": "https://www.coindesk.com/tech/2026/08/22/tokenized-stocks-risk-repeating-wall-street-s-1960s-paper-crisis-fairmint-ceo-says",
+        "summary": "",
+        "published": "2026-08-22T14:00:00Z",
+        "source": "CoinDesk"
+      },
+      {
         "title": "Kalshi off-limits in multiple states as prediction markets, CFTC team up for battle",
         "link": "https://www.coindesk.com/news-analysis/2026/08/21/kalshi-off-limits-in-multiple-states-as-prediction-markets-cftc-team-up-for-battle",
         "summary": "",
@@ -5080,13 +5078,6 @@
         "link": "https://www.coindesk.com/daybook-us/2026/08/21/bitcoin-faces-usd80-000-test-as-thinner-weekend-liquidity-looms",
         "summary": "",
         "published": "2026-08-21T11:26:27Z",
-        "source": "CoinDesk"
-      },
-      {
-        "title": "Nomura-backed Laser Digital wins Japan's first crypto approval in four years",
-        "link": "https://www.coindesk.com/policy/2026/08/21/nomura-backed-laser-digital-wins-japan-s-first-crypto-approval-in-four-years",
-        "summary": "",
-        "published": "2026-08-21T10:38:47Z",
         "source": "CoinDesk"
       }
     ]
