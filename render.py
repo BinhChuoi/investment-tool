@@ -867,6 +867,8 @@ h2{font-size:18px;margin:22px 0 10px;} h3{font-size:15px;margin:0;} h4{margin:0 
 .tab{flex:0 0 auto;background:transparent;border:1px solid var(--line);color:var(--muted);
   border-radius:999px;padding:7px 14px;font-size:13.5px;font-weight:600;cursor:pointer;white-space:nowrap;}
 .tab.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.tabbadge{display:inline-block;min-width:16px;padding:0 5px;margin-left:5px;border-radius:999px;
+  background:#dc2626;color:#fff;font-size:10.5px;font-weight:700;line-height:16px;text-align:center;}
 .tabpanel{display:none;} .tabpanel.active{display:block;}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px;}
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
@@ -1096,17 +1098,19 @@ def page_content(brief, assess, news_rows, watermark, prev_snapshot):
     """Page content (style + body + script), WITHOUT doctype/html/head/body.
     Shared by the standalone report.html and the Artifact (body-only) build."""
     gen = brief.get("generated_at", "")[:16].replace("T", " ")
+    n_new = sum(1 for n in news_rows if n.get("is_new"))
+    news_badge = f'<span class="tabbadge">{n_new}</span>' if n_new else ""
     tabs = [
-        ("overview", "Tổng quan", "&#128202;"),
-        ("vn30", "VN30", "&#127974;"),
-        ("crypto", "Crypto", "&#8383;"),
-        ("macro", "Vĩ mô", "&#127758;"),
-        ("news", "Tin tức", "&#128240;"),
+        ("overview", "Tổng quan", "&#128202;", ""),
+        ("vn30", "VN30", "&#127974;", ""),
+        ("crypto", "Crypto", "&#8383;", ""),
+        ("macro", "Vĩ mô", "&#127758;", ""),
+        ("news", "Tin tức", "&#128240;", news_badge),
     ]
     tabbar = "".join(
         f'<button class="tab{" active" if i == 0 else ""}" data-tab="{tid}">'
-        f'{icon} {esc(label)}</button>'
-        for i, (tid, label, icon) in enumerate(tabs))
+        f'{icon} {esc(label)}{badge}</button>'
+        for i, (tid, label, icon, badge) in enumerate(tabs))
 
     return f"""<style>{CSS}</style>
 <div class="wrap">

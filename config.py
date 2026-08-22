@@ -36,7 +36,7 @@ NEWS_FEEDS = {
 NEWS_PER_FEED = 12
 
 # Max news items DISPLAYED per topic (keep only the most important, avoid pile-up)
-NEWS_MAX_PER_TOPIC = 6
+NEWS_MAX_PER_TOPIC = 12
 
 # Keep only finance/market-relevant news: an item must contain at least one of these
 # keywords (case-insensitive, Vietnamese & English) to be kept.
