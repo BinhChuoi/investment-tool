@@ -785,9 +785,11 @@ def _news_li(it):
     summ = f'<div class="nsum">{esc(it.get("summary",""))}</div>' if it.get("summary") else ""
     hot = (' <span class="hot" title="Được nhiều nguồn cùng đưa">&#128293;</span>'
            if it.get("hot", 0) >= 4 else "")
-    # is_new is decided SERVER-side (consistent across devices) -> baked into the class
+    # is_new is decided SERVER-side (consistent across devices) -> baked into the class.
+    # data-ts (first_seen) lets the client localStorage layer dim items you personally read.
     cls = "newsitem is-new" if it.get("is_new") else "newsitem is-read"
-    return (f'<li class="{cls}">'
+    ts = esc(it.get("first_seen") or it.get("published") or "")
+    return (f'<li class="{cls}" data-ts="{ts}">'
             f'<div class="ntitle">{title}{hot}</div>'
             f'<div class="nmeta">{esc(it.get("source",""))} &middot; {esc(pub)}</div>'
             f'{summ}</li>')
@@ -835,13 +837,16 @@ def render_news(news_rows):
     return f"""
     <div class="newstools">
       <span class="newcounter">🆕 {n_new} tin mới tuần này</span>
+      <button class="btn" onclick="markReadLocal()">&#10003; Đánh dấu đã đọc</button>
       <label class="switch"><input type="checkbox" id="onlynew" onchange="toggleOnlyNew()">
         <span>Chỉ hiện tin mới</span></label>
+      <button class="btn ghost" onclick="clearReadLocal()">Bỏ đánh dấu</button>
+      <span class="readinfo" id="readinfo"></span>
     </div>
     {blocks}
     <div class="sub" style="margin-top:8px">Nhãn 🆕 = tin mới trong tuần này (giống nhau trên mọi thiết bị) ·
-      🔥 = được nhiều nguồn cùng đưa (đang nóng). Mỗi chủ đề hiện tối đa {config.NEWS_MAX_PER_TOPIC} tin,
-      ưu tiên: mới → nóng → quan trọng → mới nhất. Chủ nhật tới tự làm mới.</div>"""
+      🔥 = được nhiều nguồn cùng đưa (đang nóng). Nút <b>“Đánh dấu đã đọc”</b> chỉ lưu trên
+      <b>máy này</b> (localStorage, an toàn) để làm mờ tin đã đọc giữa tuần. Chủ nhật tới tự làm mới.</div>"""
 
 
 # ---------------- Page ----------------
@@ -964,6 +969,8 @@ details.chartswrap>summary{cursor:pointer;font-weight:600;color:var(--accent);pa
 .newsitem.is-new .ntitle::before{content:"MỚI";background:var(--accent);color:#fff;font-size:9px;
   font-weight:700;padding:1px 5px;border-radius:4px;margin-right:6px;vertical-align:middle;}
 .newsitem.is-read{opacity:.5;}
+.newsitem.read-local{opacity:.4;}
+.newsitem.read-local .ntitle::before{display:none;}
 """
 
 # ---------------- Client-side JS ----------------
@@ -1013,17 +1020,41 @@ JS = """
     if(d.tagName==='DETAILS' && d.open) initIn(d);
   }, true);
 
-  // ---- News: only-new toggle ----
+  // ---- News: personal "read" mark (localStorage only, safe on public pages) ----
+  var RKEY='inv_read_until', memR=null;
+  function rGet(){ try{ var v=localStorage.getItem(RKEY); return v!=null?v:memR; }catch(e){ return memR; } }
+  function rSet(v){ memR=v; try{ localStorage.setItem(RKEY,v); }catch(e){} applyLocalRead(); }
+  function rDel(){ memR=null; try{ localStorage.removeItem(RKEY); }catch(e){} applyLocalRead(); }
+  window.applyLocalRead=function(){
+    var ru=rGet();
+    document.querySelectorAll('.newsitem').forEach(function(li){
+      var ts=li.getAttribute('data-ts')||'';
+      li.classList.toggle('read-local', !!(ru && ts && ts<=ru));
+    });
+    var info=document.getElementById('readinfo');
+    if(info) info.textContent = ru ? ('Đã đọc tới: '+ru.slice(0,16).replace('T',' ')) : '';
+    if(document.getElementById('onlynew')) window.toggleOnlyNew();
+  };
+  window.markReadLocal=function(){ rSet(new Date().toISOString()); };
+  window.clearReadLocal=function(){ rDel(); };
+  // click a headline also marks it (and older) read, on this device
+  document.addEventListener('click',function(e){
+    var a=e.target.closest('.newslink'); if(!a) return;
+    var ts=a.closest('.newsitem').getAttribute('data-ts')||'';
+    if(ts && ts>(rGet()||'')) rSet(ts);
+  });
+
+  // ---- News: only-new toggle (a read-local item counts as not-new) ----
   window.toggleOnlyNew=function(){
     var el=document.getElementById('onlynew');
     var only = el && el.checked;
     document.querySelectorAll('.newsitem').forEach(function(li){
-      var isNew = li.classList.contains('is-new');
-      li.style.display = (only && !isNew) ? 'none' : '';
+      var show = li.classList.contains('is-new') && !li.classList.contains('read-local');
+      li.style.display = (only && !show) ? 'none' : '';
     });
     document.querySelectorAll('.newsblock').forEach(function(b){
-      var hasNew = b.querySelector('.newsitem.is-new');
-      b.style.display = (only && !hasNew) ? 'none' : '';
+      var any = b.querySelector('.newsitem.is-new:not(.read-local)');
+      b.style.display = (only && !any) ? 'none' : '';
     });
   };
 
@@ -1054,8 +1085,8 @@ JS = """
     });
   };
 
-  document.addEventListener('DOMContentLoaded', function(){ initIn(document); });
-  initIn(document);
+  document.addEventListener('DOMContentLoaded', function(){ initIn(document); applyLocalRead(); });
+  initIn(document); applyLocalRead();
 })();
 </script>
 """
