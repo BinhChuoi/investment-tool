@@ -210,16 +210,13 @@ def _ds(label, data, color, axis="y", dash=False, fill=False):
     return d
 
 
-def pe_pb_chart(cid, periods, pe_series, pb_series, pe_avg, pb_avg):
-    """Dual-axis chart: P/E (left) + P/B (right), each with its historical average line."""
-    n = len(periods)
+def pe_pb_chart(cid, periods, pe_series, pb_series):
+    """Dual-axis chart: P/E (left) + P/B (right) over time."""
     cfg = {
         "type": "line",
         "data": {"labels": periods, "datasets": [
             _ds("P/E", pe_series, "#4f46e5", "yl"),
-            _ds("TB P/E", [pe_avg] * n if pe_avg else [], "#4f46e5", "yl", dash=True),
             _ds("P/B", pb_series, "#0d9488", "yr"),
-            _ds("TB P/B", [pb_avg] * n if pb_avg else [], "#0d9488", "yr", dash=True),
         ]},
         "options": {
             "responsive": True, "maintainAspectRatio": False,
@@ -346,10 +343,9 @@ def _stock_card(r):
       <div class="vcell mini">{sparkline(r.get('pe_series'), w=90, h=26)}</div>
     """
 
-    # body: dual-axis Chart.js of P/E (left) & P/B (right) with their average lines
-    pe_avg, pb_avg = pe_st.get("avg"), pb_st.get("avg")
+    # body: dual-axis Chart.js of P/E (left) & P/B (right) over time
     pe_series, pb_series = r.get("pe_series") or [], r.get("pb_series") or []
-    combo = pe_pb_chart(f"chart_{esc(sym)}", periods, pe_series, pb_series, pe_avg, pb_avg)
+    combo = pe_pb_chart(f"chart_{esc(sym)}", periods, pe_series, pb_series)
 
     def stat_line(name, cur, st, cheap=True):
         if not st:
@@ -362,7 +358,7 @@ def _stock_card(r):
       <div class="carddetail">
         {stat_line("P/E", pe, pe_st)}
         {stat_line("P/B", pb, pb_st)}
-        <div class="chartbox"><div class="charttitle">P/E &amp; P/B theo quý ({yrs_txt}) — đường nét đứt = trung bình lịch sử</div>{combo}</div>
+        <div class="chartbox"><div class="charttitle">P/E (trục trái) &amp; P/B (trục phải) theo quý ({yrs_txt})</div>{combo}</div>
         <div class="statline muted">ROE {fmt_num(r.get('roe'))}% · giá 52 tuần:
           {fmt_num(r.get('w52_low'))} – {fmt_num(r.get('w52_high'))} (hiện ở {fmt_num(r.get('w52_pos'))}% dải) ·
           Δ 1 năm {r.get('ret_1y')}%</div>
@@ -408,6 +404,50 @@ def _num_td(v, suffix="", pct=False):
     return f'<td class="r" data-v="{v}">{fmt_num(v)}{suffix}</td>'
 
 
+def vn30_valuation_history(rows):
+    """Median P/E and P/B of the whole VN30 basket per quarter (from stored series)."""
+    from collections import defaultdict
+    pe_by, pb_by = defaultdict(list), defaultdict(list)
+    for r in rows:
+        periods = r.get("periods") or []
+        pes = r.get("pe_series") or []
+        pbs = r.get("pb_series") or []
+        for i, p in enumerate(periods):
+            if i < len(pes) and _finite(pes[i]):
+                pe_by[p].append(pes[i])
+            if i < len(pbs) and _finite(pbs[i]):
+                pb_by[p].append(pbs[i])
+
+    def pkey(p):
+        try:
+            y, q = p.split("Q")
+            return (int(y), int(q))
+        except Exception:
+            return (0, 0)
+    periods = sorted(set(list(pe_by) + list(pb_by)), key=pkey)
+    pe_med = [round(statistics.median(pe_by[p]), 2) if pe_by.get(p) else None for p in periods]
+    pb_med = [round(statistics.median(pb_by[p]), 2) if pb_by.get(p) else None for p in periods]
+    return periods, pe_med, pb_med
+
+
+def render_vn30_chart(rows):
+    """Whole-basket valuation chart: median P/E & P/B of VN30 over time."""
+    periods, pe_med, pb_med = vn30_valuation_history(rows)
+    if len([x for x in pe_med if _finite(x)]) < 2:
+        return ""
+    cur_pe = next((x for x in reversed(pe_med) if _finite(x)), None)
+    hist = [x for x in pe_med if _finite(x)]
+    avg_pe = round(sum(hist) / len(hist), 1) if hist else None
+    note = ""
+    if _finite(cur_pe) and _finite(avg_pe):
+        vs = (cur_pe - avg_pe) / avg_pe * 100
+        note = (f' — P/E rổ hiện tại <b>{fmt_num(cur_pe)}</b> so với TB ~8 năm <b>{fmt_num(avg_pe)}</b> '
+                f'{vs_avg_badge(round(vs, 1))}')
+    chart = pe_pb_chart("vn30_basket", periods, pe_med, pb_med)
+    return (f'<div class="chartbox"><div class="charttitle">📊 Định giá chung VN30 theo thời gian '
+            f'— P/E &amp; P/B <b>trung vị</b> cả rổ{note}</div>{chart}</div>')
+
+
 def render_vn30_table(rows):
     """Sortable + filterable VN30 table."""
     body = ""
@@ -448,7 +488,8 @@ def render_vn30(vn):
     cards = "".join(_stock_card(r) for r in rows)
     return f"""
     {vn30_aggregate(rows)}
-    <div class="sub" style="margin-bottom:8px">30 cổ phiếu VN30 · định giá TTM mới nhất {esc(period)}.</div>
+    {render_vn30_chart(rows)}
+    <div class="sub" style="margin:12px 0 8px">30 cổ phiếu VN30 · định giá TTM mới nhất {esc(period)}.</div>
     {render_vn30_table(rows)}
     <details class="chartswrap" style="margin-top:14px"><summary>&#128200; Xem biểu đồ P/E &amp; P/B từng mã</summary>
       <div class="sub" style="margin:8px 0">Bấm vào một mã để xem biểu đồ dài hạn (~8 năm).</div>
