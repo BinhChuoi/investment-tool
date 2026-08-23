@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-22T17:04:06.981232",
-  "date": "2026-08-22",
+  "generated_at": "2026-08-23T01:17:24.500530",
+  "date": "2026-08-23",
   "vn": {
     "error": null,
     "index": {
@@ -11598,62 +11598,62 @@
   "crypto": {
     "error": null,
     "global": {
-      "total_market_cap_usd": 2627761392682.077,
-      "total_volume_usd": 146296055405.1781,
-      "btc_dominance": 58.843676543692816,
-      "eth_dominance": 11.091207855236682,
-      "market_cap_change_24h": -2.1672792203830626
+      "total_market_cap_usd": 2614261981285.9404,
+      "total_volume_usd": 127858281344.87056,
+      "btc_dominance": 59.22243812536934,
+      "eth_dominance": 11.190269727616558,
+      "market_cap_change_24h": -4.137412118128327
     },
     "coins": [
       {
         "id": "bitcoin",
         "symbol": "BTC",
         "name": "Bitcoin",
-        "price": 77261,
-        "change_24h": 0.2,
+        "price": 77297,
+        "change_24h": -1.4,
         "change_7d": 22.7,
-        "change_30d": 19.1,
-        "market_cap": 1550615490537,
-        "ath_change": -38.72025
+        "change_30d": 18.9,
+        "market_cap": 1551548292125,
+        "ath_change": -38.69203
       },
       {
         "id": "ethereum",
         "symbol": "ETH",
         "name": "Ethereum",
-        "price": 2422.43,
-        "change_24h": 1.3,
-        "change_7d": 28.7,
-        "change_30d": 28.0,
-        "market_cap": 292320600361,
-        "ath_change": -51.02296
+        "price": 2425.97,
+        "change_24h": -3.4,
+        "change_7d": 29.4,
+        "change_30d": 29.7,
+        "market_cap": 292800116043,
+        "ath_change": -50.95128
       },
       {
         "id": "binancecoin",
         "symbol": "BNB",
         "name": "BNB",
-        "price": 695.31,
-        "change_24h": 2.7,
-        "change_7d": 14.0,
-        "change_30d": 22.8,
-        "market_cap": 92584895186,
-        "ath_change": -49.24698
+        "price": 698.5,
+        "change_24h": 1.9,
+        "change_7d": 15.4,
+        "change_30d": 23.6,
+        "market_cap": 93025047695,
+        "ath_change": -49.01463
       },
       {
         "id": "solana",
         "symbol": "SOL",
         "name": "Solana",
-        "price": 94.23,
-        "change_24h": 3.3,
-        "change_7d": 25.1,
-        "change_30d": 23.7,
-        "market_cap": 54963678356,
-        "ath_change": -67.87427
+        "price": 95.87,
+        "change_24h": 2.9,
+        "change_7d": 28.3,
+        "change_30d": 27.4,
+        "market_cap": 55916655737,
+        "ath_change": -67.31501
       }
     ],
     "fear_greed": {
-      "value": 71,
+      "value": 66,
       "label": "Greed",
-      "prev_value": 72
+      "prev_value": 71
     },
     "longterm": {
       "bitcoin": {
@@ -11801,7 +11801,7 @@
           73579.69,
           58558.86,
           62813.75,
-          77285.29
+          77322.04
         ],
         "labels": [
           "2014-09",
@@ -11950,10 +11950,10 @@
           "2026-08"
         ],
         "start": "2014-09",
-        "current": 77285.29,
-        "avg_all": 29297.76,
-        "vs_avg_pct": 163.8,
-        "ma200": 68981.85,
+        "current": 77322.04,
+        "avg_all": 29298.01,
+        "vs_avg_pct": 163.9,
+        "ma200": 68982.04,
         "mayer": 1.12
       },
       "ethereum": {
@@ -12063,7 +12063,7 @@
           2004.34,
           1569.58,
           1860.35,
-          2423.38
+          2429.37
         ],
         "labels": [
           "2017-11",
@@ -12174,10 +12174,10 @@
           "2026-08"
         ],
         "start": "2017-11",
-        "current": 2423.38,
-        "avg_all": 1720.5,
-        "vs_avg_pct": 40.9,
-        "ma200": 2005.39,
+        "current": 2429.37,
+        "avg_all": 1720.56,
+        "vs_avg_pct": 41.2,
+        "ma200": 2005.42,
         "mayer": 1.21
       }
     }
@@ -12390,10 +12390,10 @@
   "news": {
     "global_macro": [
       {
-        "title": "‘She’s desperate’: My friend was laid off and lost her health insurance. How can she find affordable coverage?",
-        "link": "https://www.marketwatch.com/story/shes-desperate-my-friend-was-laid-off-and-lost-her-health-insurance-how-can-she-find-affordable-coverage-3b17b553?mod=mw_rss_topstories",
-        "summary": "“She looked into COBRA, but the cost is absolutely ridiculous.”",
-        "published": "2026-08-22T13:45:00Z",
+        "title": "Canada announces retaliatory tariffs on U.S. goods after trade talks break down",
+        "link": "https://www.marketwatch.com/story/canada-announces-retaliatory-tariffs-on-u-s-goods-after-trade-talks-break-down-45081c2f?mod=mw_rss_topstories",
+        "summary": "Canadian Prime Minister Mark Carney on Saturday announced his country would impose “dollar-for-dollar” tariffs on U.S. goods — a retaliatory measure after trade talks between the two nations broke down.",
+        "published": "2026-08-22T20:31:00Z",
         "source": "MarketWatch"
       },
       {
@@ -12408,13 +12408,6 @@
         "link": "https://www.marketwatch.com/story/why-an-announcement-from-the-treasury-sparked-a-rally-in-gold-and-bitcoin-this-week-d9d5972b?mod=mw_rss_topstories",
         "summary": "Cryptocurrencies and precious metals shot higher, while the U.S. dollar weakened, after the Treasury Department said it planned to double its bond buybacks.",
         "published": "2026-08-22T13:00:00Z",
-        "source": "MarketWatch"
-      },
-      {
-        "title": "Here’s some surprisingly good news for the stock market this midterm election year",
-        "link": "https://www.marketwatch.com/story/heres-some-surprisingly-good-news-for-the-stock-market-this-midterm-election-year-d492d3a4?mod=mw_rss_topstories",
-        "summary": "There is a strong historical pattern of postmidterm strength.",
-        "published": "2026-08-22T12:00:00Z",
         "source": "MarketWatch"
       },
       {
@@ -12497,6 +12490,41 @@
     ],
     "vn": [
       {
+        "title": "Bí mật của người Việt đầu tiên trở thành Partner quỹ phòng hộ tỷ đô Phố Wall",
+        "link": "https://cafef.vn/bi-mat-cua-nguoi-viet-dau-tien-tro-thanh-partner-quy-phong-ho-ty-do-pho-wall-18826082221500741.chn",
+        "summary": "Đỗ Hồng Anh không có một khởi đầu thuận lợi với Phố Wall: không có người hướng dẫn, suýt bị đuổi sau 6 tháng đầu tiên, đi kèm với nỗi ám ảnh mất việc thường trực. Thế nhưng, 13 năm sau, chị trở thành Partner, dẫn dắt quỹ phòng hộ (hedge fund) quản lý tài sản hơn 6 tỷ USD tại New ",
+        "published": "2026-08-23T00:00:00Z",
+        "source": "CafeF - Chung khoan"
+      },
+      {
+        "title": "Hai em nhỏ mồ côi cha mẹ vì điện giật được ngân hàng xoá nợ 1,7 tỷ đồng",
+        "link": "https://vnexpress.net/hai-em-nho-mo-coi-cha-me-vi-dien-giat-duoc-ngan-hang-xoa-no-1-7-ty-dong-5112294.html",
+        "summary": "Sau khi cha mẹ qua đời vì điện giật, hai em nhỏ ở Đà Nẵng vẫn giữ được căn nhà đã thế chấp nhờ được ngân hàng miễn khoản nợ 1,7 tỷ đồng.",
+        "published": "2026-08-22T17:27:20Z",
+        "source": "VnExpress - Kinh doanh"
+      },
+      {
+        "title": "2 ngày cuối tuần dài đằng đẵng với nhà đầu tư chứng khoán",
+        "link": "https://cafef.vn/2-ngay-cuoi-tuan-dai-dang-dang-voi-nha-dau-tu-chung-khoan-188260822222244897.chn",
+        "summary": "Thị trường chứng khoán vừa khởi sắc trở lại sau chuỗi ngày ảm đảm thì 2 ngày cuối tuần lại đến.",
+        "published": "2026-08-22T17:10:00Z",
+        "source": "CafeF - Chung khoan"
+      },
+      {
+        "title": "Đã bắt giữ đối tượng sinh năm 1993 trộm hơn 80 lượng vàng",
+        "link": "https://cafef.vn/da-bat-giu-doi-tuong-sinh-nam-1993-trom-hon-80-luong-vang-188260822220738614.chn",
+        "summary": "Qua xác minh ban đầu, tài sản bị trộm là khoảng 80 lượng vàng 18K, trị giá ước tính khoảng 8 tỷ đồng.",
+        "published": "2026-08-22T17:10:00Z",
+        "source": "CafeF - Chung khoan"
+      },
+      {
+        "title": "Không chỉ chứng khoán, nhóm cổ phiếu này được dự báo hưởng lợi kép sau nâng hạng",
+        "link": "https://cafef.vn/khong-chi-chung-khoan-nhom-co-phieu-nay-duoc-du-bao-huong-loi-kep-sau-nang-hang-188260822221034656.chn",
+        "summary": "TPS Research ước tính có khoảng 1,364 tỷ USD tài sản đang được quản lý (AUM) bởi các quỹ thụ động mô phỏng những chỉ số FTSE có liên quan đến rổ thị trường mới nổi và toàn cầu.",
+        "published": "2026-08-22T17:08:00Z",
+        "source": "CafeF - Chung khoan"
+      },
+      {
         "title": "Soi định giá nhóm cổ phiếu chứng khoán trước sóng nâng hạng",
         "link": "https://cafef.vn/soi-dinh-gia-nhom-co-phieu-chung-khoan-truoc-song-nang-hang-18826082222091201.chn",
         "summary": "NSI đánh giá mặt bằng định giá hiện tại vẫn mở ra dư địa tái định giá cho nhóm chứng khoán trong năm 2026.",
@@ -12574,13 +12602,6 @@
         "source": "CafeF - Vi mo"
       },
       {
-        "title": "Bộ trưởng Tài chính: Cần cơ chế phát triển đô thị lấn biển để tạo cực tăng trưởng mới",
-        "link": "https://vnexpress.net/bo-truong-tai-chinh-can-co-che-phat-trien-do-thi-lan-bien-de-tao-cuc-tang-truong-moi-5112093.html",
-        "summary": "Cơ chế riêng sẽ thu hút nhà đầu tư xây dựng đô thị lấn biển, góp phần thúc đẩy tăng trưởng hai chữ số, theo Bộ trưởng Ngô Văn Tuấn.",
-        "published": "2026-08-22T07:41:27Z",
-        "source": "VnExpress - Kinh doanh"
-      },
-      {
         "title": "Chi hơn 21 tỷ đồng xây công viên Ba hạt lúa",
         "link": "https://cafef.vn/chi-hon-21-ty-dong-xay-cong-vien-ba-hat-lua-188260822133739232.chn",
         "summary": "UBND tỉnh Cà Mau vừa phê duyệt chủ trương đầu tư Dự án Công viên ba hạt lúa tại xã Vĩnh Lợi, với tổng vốn hơn 21 tỷ đồng từ ngân sách nhà nước, điểm nhấn là biểu tượng Ba hạt lúa cao 24 m.",
@@ -12637,39 +12658,11 @@
         "source": "CafeF - Chung khoan"
       },
       {
-        "title": "VietinBank thông qua Hợp đồng mua bán tài sản đấu giá tại KĐT Nam Thăng Long",
-        "link": "https://cafef.vn/vietinbank-thong-qua-hop-dong-mua-ban-tai-san-dau-gia-tai-kdt-nam-thang-long-188260822093434934.chn",
-        "summary": "Ngân hàng TMCP Công thương Việt Nam – VietinBank (HoSE: CTG) vừa công bố thông tin bất thường về việc HĐQT thông qua Hợp đồng mua bán tài sản đấu giá giữa VietinBank và người có liên quan của người nội bộ.",
-        "published": "2026-08-22T03:33:00Z",
-        "source": "CafeF - Chung khoan"
-      },
-      {
-        "title": "Ngạc nhiên giá vàng",
-        "link": "https://cafef.vn/ngac-nhien-gia-vang-188260822102547165.chn",
-        "summary": "Sáng nay (22/8), giá vàng miếng SJC tiếp tục tăng, giao dịch ở mức 147 triệu đồng/lượng. Ngạc nhiên là lần đầu tiên giá mua vào vàng miếng SJC, vàng nhẫn thấp hơn vàng thế giới.",
-        "published": "2026-08-22T03:25:00Z",
-        "source": "CafeF - Chung khoan"
-      },
-      {
         "title": "Giá vàng miếng lên cao nhất hơn một tháng",
         "link": "https://vnexpress.net/gia-vang-moi-nhat-hom-nay-ngay-22-8-5111983.html",
         "summary": "Các thương hiệu bán ra vàng miếng, nhẫn trơn quanh 147,6 triệu đồng, cao nhất hơn một tháng.",
         "published": "2026-08-22T03:13:33Z",
         "source": "VnExpress - Kinh doanh"
-      },
-      {
-        "title": "VN-Index tăng mạnh nhất 1 tháng, tuần tới chứng khoán sẽ ra sao?",
-        "link": "https://cafef.vn/vn-index-tang-manh-nhat-1-thang-tuan-toi-chung-khoan-se-ra-sao-188260822091048792.chn",
-        "summary": "VN-Index tăng gần 34 điểm trong phiên cuối tuần, mạnh nhất một tháng, khi thanh khoản cải thiện và dòng tiền khối ngoại có dấu hiệu trở lại.",
-        "published": "2026-08-22T02:31:00Z",
-        "source": "CafeF - Chung khoan"
-      },
-      {
-        "title": "Seaprodex chốt ngày chia cổ tức tiền mặt tỷ lệ 5%",
-        "link": "https://cafef.vn/seaprodex-chot-ngay-chia-co-tuc-tien-mat-ty-le-5-188260822091423251.chn",
-        "summary": "Ngày 22/9/2026 tới đây, Seaprodex sẽ chốt danh sách cổ đông để thực hiện chi trả cổ tức năm 2025 bằng tiền mặt với tỷ lệ 5%.",
-        "published": "2026-08-22T02:14:00Z",
-        "source": "CafeF - Chung khoan"
       },
       {
         "title": "Giá vàng thế giới tiếp tục vượt 4.600 USD",
